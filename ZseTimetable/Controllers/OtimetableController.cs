@@ -4,13 +4,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace ZseTimetable.Controllers
 {
-    [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
     [ApiController]
     public class OtimetableController : ControllerBase
     {
@@ -23,11 +24,21 @@ namespace ZseTimetable.Controllers
             _client = new HttpClient();
         }
 
-        [HttpGet]
-        public async Task<string> GetAsync(int id = 1)
+        [Microsoft.AspNetCore.Mvc.HttpGet("{id}")]
+        [Microsoft.AspNetCore.Mvc.HttpGet]
+        public async Task<ActionResult> GetClassTimetableAsync(int id = 1)
         {
-            var response = await _client.GetStringAsync("https://plan.zse.bydgoszcz.pl/plany/o"+id+ ".html");
-            return response;
+            try
+            {
+                var response = await _client.GetStringAsync("https://plan.zse.bydgoszcz.pl/plany/o" + id + ".html");
+                return Ok(response);
+            }
+            catch (HttpRequestException exception)
+            {
+                return Content(exception.Message);
+            }
         }
+
+
     }
 }

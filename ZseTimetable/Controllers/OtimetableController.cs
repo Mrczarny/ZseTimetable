@@ -39,6 +39,20 @@ namespace ZseTimetable.Controllers
             }
         }
 
+        [Microsoft.AspNetCore.Mvc.HttpGet("changes")]
+        public async Task<ActionResult> GetChangesAsync()
+        {
+            try
+            {
+                var response = await _client.GetStringAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
+                return Ok(response);
+            }
+            catch (HttpRequestException exception)
+            {
+                return Content(exception.Message);
+            }
+        }
+
 
     }
 }

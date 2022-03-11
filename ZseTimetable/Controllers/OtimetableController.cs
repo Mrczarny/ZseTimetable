@@ -30,12 +30,12 @@ namespace ZseTimetable.Controllers
         {
             try
             {
-                var response = await _client.GetStringAsync("https://plan.zse.bydgoszcz.pl/plany/o" + id + ".html");
+                var response = await _client.GetStreamAsync("https://plan.zse.bydgoszcz.pl/plany/o" + id + ".html");
                 return Ok(response);
             }
             catch (HttpRequestException exception)
             {
-                return Content(exception.Message);
+                return Problem(exception.Message); //TODO: make response for every bad request
             }
         }
 
@@ -44,12 +44,12 @@ namespace ZseTimetable.Controllers
         {
             try
             {
-                var response = await _client.GetStringAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
+                var response = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
                 return Ok(response);
             }
             catch (HttpRequestException exception)
             {
-                return Content(exception.Message);
+                return Problem(exception.Message); 
             }
         }
 

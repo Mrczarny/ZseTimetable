@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TimetableLib.Changes
+﻿namespace TimetableLib.Changes
 {
     public class ClassChange
     {
@@ -11,6 +7,5 @@ namespace TimetableLib.Changes
         public string Description { get; set; }
         public string Deputy { get; set; }
         public string Remarks { get; set; }
-
     }
 }

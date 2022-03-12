@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace ZseTimetable.Controllers
 {
-    [Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class OtimetableController : ControllerBase
     {
         private readonly ILogger<OtimetableController> _logger;
-        private HttpClient _client;
+        private readonly HttpClient _client;
 
         public OtimetableController(ILogger<OtimetableController> logger)
         {
@@ -24,8 +18,8 @@ namespace ZseTimetable.Controllers
             _client = new HttpClient();
         }
 
-        [Microsoft.AspNetCore.Mvc.HttpGet("{id}")]
-        [Microsoft.AspNetCore.Mvc.HttpGet]
+        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult> GetClassTimetableAsync(int id = 1)
         {
             try
@@ -39,7 +33,7 @@ namespace ZseTimetable.Controllers
             }
         }
 
-        [Microsoft.AspNetCore.Mvc.HttpGet("changes")]
+        [HttpGet("changes")]
         public async Task<ActionResult> GetChangesAsync()
         {
             try
@@ -49,10 +43,8 @@ namespace ZseTimetable.Controllers
             }
             catch (HttpRequestException exception)
             {
-                return Problem(exception.Message); 
+                return Problem(exception.Message);
             }
         }
-
-
     }
 }

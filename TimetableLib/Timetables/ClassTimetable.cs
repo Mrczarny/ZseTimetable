@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace TimetableLib.Timetables
 {
@@ -8,6 +6,5 @@ namespace TimetableLib.Timetables
     {
         public long Id { get; set; }
         public List<ClassDay> DaysTimetable { get; set; } // dumb name
-
     }
 }

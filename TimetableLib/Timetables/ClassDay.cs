@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TimetableLib.Timetables
 {
@@ -10,6 +9,5 @@ namespace TimetableLib.Timetables
         public Class Class { get; set; }
         public DayOfWeek DayOfWeek { get; set; }
         public List<ClassLesson> Lessons { get; set; }
-
     }
 }

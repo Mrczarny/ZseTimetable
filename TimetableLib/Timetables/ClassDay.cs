@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TimetableLib
+namespace TimetableLib.Timetables
 {
     public class ClassDay
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TimetableLib
+namespace TimetableLib.Changes
 {
     public class TeacherChange
     {

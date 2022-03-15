@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TimeTableProcessor;
 
 namespace ZseTimetable.Controllers
 {
@@ -39,12 +40,14 @@ namespace ZseTimetable.Controllers
             try
             {
                 var response = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
-                return Ok(response);
+                var proc = new Processor();
+                 return Ok(proc.ChangesProcessor(response));
             }
             catch (HttpRequestException exception)
             {
                 return Problem(exception.Message);
             }
         }
+
     }
 }

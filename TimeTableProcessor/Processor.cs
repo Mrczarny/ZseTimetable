@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TimetableLib.Changes;
 
@@ -8,19 +9,18 @@ namespace TimeTableProcessor
 {
     public class Processor
     {
-        private HttpClient _client;
-        public Processor(HttpClient client)
+        public async Task<List<TeacherChange>> ChangesProcessor(Stream RawChanges)
         {
-            _client = client;
-        }
+            var stmReader = new StreamReader(RawChanges);
+            var rawHtml = await stmReader.ReadToEndAsync();
+            rawHtml = rawHtml.ToLower();
+            var tbody = rawHtml[rawHtml.IndexOf("<body>")..rawHtml.IndexOf("</body>")];
 
-        public async Task<List<TeacherChange>> ChangesProcessor()
-        {
-        
+            return new List<TeacherChange>();
         }
-        public async Task<List<ClassChange>> TimeetableProcessor()
+        public async Task<List<ClassChange>> TimetableProcessor(Stream RawTimetable)
         {
-
+            throw new NotImplementedException();
         }
     }
 }

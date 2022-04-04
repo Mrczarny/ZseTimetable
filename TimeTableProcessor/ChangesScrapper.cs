@@ -6,14 +6,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using TimetableLib;
 using TimetableLib.Changes;
+using TimetableLib.Timetables;
 
 namespace TimeTableProcessor
 {
-    public class Scrapper
+    public class ChangesScrapper
     {
         private bool Contains(string s) => s.Contains("");
 
-        public async Task<IEnumerable<TeacherReplacement>> ChangesScrapper(Stream RawChanges)
+        public async Task<IEnumerable<TeacherReplacement>> Scrapper(Stream RawChanges)
         {
             int tHeaderCellsNumber = 5;
             var stmReader = new StreamReader(RawChanges);
@@ -69,10 +70,6 @@ namespace TimeTableProcessor
             }
 
            return teachersReplacements;
-        }
-        public async Task<List<ClassReplacement>> TimetableProcessor(Stream RawTimetable)
-        {
-            throw new NotImplementedException();
         }
     }
 }

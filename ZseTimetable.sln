@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZseTimetable", "ZseTimetabl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimetableLib", "TimetableLib\TimetableLib.csproj", "{6D769BC0-8CED-4CC8-A494-1AECC4E5B07A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTableProcessor", "TimeTableProcessor\TimeTableProcessor.csproj", "{373E3C1D-5BC0-4B3D-812B-ADB72C3E3968}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scrappers", "TimeTableProcessor\Scrappers.csproj", "{373E3C1D-5BC0-4B3D-812B-ADB72C3E3968}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

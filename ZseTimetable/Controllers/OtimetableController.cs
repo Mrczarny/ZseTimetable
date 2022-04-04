@@ -26,16 +26,19 @@ namespace ZseTimetable.Controllers
 
         [HttpGet("{id}")]
         [HttpGet]
+        [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult> GetClassTimetableAsync(int id = 1)
         {
             try
             {
-                var response = await _client.GetStreamAsync("https://plan.zse.bydgoszcz.pl/plany/o" + id + ".html");
-                return Ok(response);
+                var rawTimetable = await _client.GetStreamAsync("https://plan.zse.bydgoszcz.pl/plany/o" + id + ".html");
+                var scrapper = new TimetableScrapper();
+                var jsonChanges = await scrapper.Scrapper(rawTimetable);
+                return Ok(jsonChanges);
             }
             catch (HttpRequestException exception)
             {
-                return Problem(exception.Message); //TODO: make response for every bad request
+                return Problem(exception.Message);
             }
         }
 
@@ -46,8 +49,8 @@ namespace ZseTimetable.Controllers
             try
             {
                 var rawChanges = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
-                var scrapper = new Scrapper();
-                var jsonChanges = await scrapper.ChangesScrapper(rawChanges);
+                var scrapper = new ChangesScrapper();
+                var jsonChanges = await scrapper.Scrapper(rawChanges);
                 return Ok(jsonChanges);
             }
             catch (HttpRequestException exception)

@@ -9,7 +9,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\TimeTableProcessor\TimeTableProcessor.csproj" />
+	  <ProjectReference Include="..\TimeTableProcessor\Scrappers.csproj" />
 	</ItemGroup>
 
 

@@ -1,5 +1,10 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TimeTableProcessor;
@@ -35,13 +40,15 @@ namespace ZseTimetable.Controllers
         }
 
         [HttpGet("changes")]
+        [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult> GetChangesAsync()
         {
             try
             {
-                var response = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
-                var proc = new Processor();
-                 return Ok(proc.ChangesProcessor(response));
+                var rawChanges = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
+                var scrapper = new Scrapper();
+                var jsonChanges = await scrapper.ChangesScrapper(rawChanges);
+                return Ok(jsonChanges);
             }
             catch (HttpRequestException exception)
             {

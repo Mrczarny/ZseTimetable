@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using TimetableLib;
 using TimetableLib.Changes;
@@ -17,7 +18,8 @@ namespace TimeTableProcessor
         public async Task<IEnumerable<TeacherReplacement>> Scrapper(Stream RawChanges)
         {
             int tHeaderCellsNumber = 5;
-            var stmReader = new StreamReader(RawChanges);
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);                          // Very bad place for this line
+            var stmReader = new StreamReader(RawChanges, Encoding.GetEncoding("iso-8859-2"));
 
             var rawHtml = (await stmReader.ReadToEndAsync()).ToLower();
             var body = rawHtml[rawHtml.IndexOf("<body>")..rawHtml.IndexOf("</body>")].Replace("\r\n", String.Empty);

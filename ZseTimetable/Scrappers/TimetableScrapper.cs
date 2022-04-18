@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using TimetableLib.Timetables;
 
-namespace TimeTableProcessor
+namespace ZseTimetable
 {
     public class TimetableScrapper
     {

@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TimetableLib;
 using TimetableLib.Changes;
-using TimetableLib.Timetables;
 
-namespace TimeTableProcessor
+namespace ZseTimetable
 {
     public class ChangesScrapper
     {
@@ -18,7 +16,6 @@ namespace TimeTableProcessor
         public async Task<IEnumerable<TeacherReplacement>> Scrapper(Stream RawChanges)
         {
             int tHeaderCellsNumber = 5;
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);                          // Very bad place for this line
             var stmReader = new StreamReader(RawChanges, Encoding.GetEncoding("iso-8859-2"));
 
             var rawHtml = (await stmReader.ReadToEndAsync()).ToLower();
@@ -26,7 +23,6 @@ namespace TimeTableProcessor
             var tables = body.Split("<td nowrap class=st1 ")
                 .ToList();
 
-           //tables.RemoveAll(TableChecker);
            List<TeacherReplacement> teachersReplacements = new List<TeacherReplacement>();
            for (int i = 1; i < tables.Count; i++)
            {

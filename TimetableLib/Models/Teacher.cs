@@ -1,4 +1,4 @@
-﻿namespace TimetableLib
+﻿namespace TimetableLib.Models
 {
     public class Teacher
     {

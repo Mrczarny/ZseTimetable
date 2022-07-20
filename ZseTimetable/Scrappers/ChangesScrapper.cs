@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TimetableLib;
+using TimetableLib.Models;
 using TimetableLib.Changes;
 
 namespace ZseTimetable
 {
     public class ChangesScrapper
     {
-        private bool Contains(string s) => s.Contains("");
 
         public async Task<IEnumerable<TeacherReplacement>> Scrapper(Stream RawChanges)
         {
@@ -19,14 +19,14 @@ namespace ZseTimetable
             var stmReader = new StreamReader(RawChanges, Encoding.GetEncoding("iso-8859-2"));
 
             var rawHtml = (await stmReader.ReadToEndAsync()).ToLower();
-            var body = rawHtml[rawHtml.IndexOf("<body>")..rawHtml.IndexOf("</body>")].Replace("\r\n", String.Empty);
-            var tables = body.Split("<td nowrap class=st1 ")
+            var body = rawHtml[rawHtml.IndexOf("<body>")..rawHtml.IndexOf("</body>")].Replace("\r\n", String.Empty); // TODO - it just broke, redo with regex 
+            var tables = body.Split("<td nowrap class=\"st1 ")
                 .ToList();
 
            List<TeacherReplacement> teachersReplacements = new List<TeacherReplacement>();
            for (int i = 1; i < tables.Count; i++)
            {
-               var whiteBox = tables[i].IndexOf("<td nowrap class=st15");
+               var whiteBox = tables[i].IndexOf("<td nowrap class=\"st15");
                if (whiteBox != -1)
                {
                    tables[i] = tables[i][..whiteBox];

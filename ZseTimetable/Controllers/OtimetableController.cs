@@ -30,7 +30,7 @@ namespace ZseTimetable.Controllers
         {
             try
             {
-                var rawTimetable = await _client.GetStreamAsync("https://plan.zse.bydgoszcz.pl/plany/o" + id + ".html");
+                var rawTimetable = await _client.GetStreamAsync("https://localhost:5005/Timetable/plany");
                 var scrapper = new TimetableScrapper();
                 var jsonChanges = await scrapper.Scrapper(rawTimetable);
                 return Ok(jsonChanges);
@@ -47,7 +47,7 @@ namespace ZseTimetable.Controllers
         {
             try
             {
-                var rawChanges = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl/index.html");
+                var rawChanges = await _client.GetStreamAsync("https://localhost:5005/Timetable/zmiany");
                 var scrapper = new ChangesScrapper();
                 var jsonChanges = await scrapper.Scrapper(rawChanges);
                 return Ok(jsonChanges);

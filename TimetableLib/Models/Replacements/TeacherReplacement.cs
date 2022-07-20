@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TimetableLib.Models;
 
 namespace TimetableLib.Changes
 {

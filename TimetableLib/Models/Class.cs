@@ -1,6 +1,6 @@
 ﻿using TimetableLib.Timetables;
 
-namespace TimetableLib
+namespace TimetableLib.Models
 {
     public class Class
     {

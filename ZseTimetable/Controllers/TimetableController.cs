@@ -7,17 +7,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TimetableLib;
 
 namespace ZseTimetable.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OtimetableController : ControllerBase
+    public class TimetableController : ControllerBase
     {
-        private readonly ILogger<OtimetableController> _logger;
+        private readonly ILogger<TimetableController> _logger;
         private readonly HttpClient _client;
 
-        public OtimetableController(ILogger<OtimetableController> logger)
+        public TimetableController(ILogger<TimetableController> logger)
         {
             _logger = logger;
             _client = new HttpClient();
@@ -31,25 +32,7 @@ namespace ZseTimetable.Controllers
             try
             {
                 var rawTimetable = await _client.GetStreamAsync("https://localhost:5005/Timetable/plany");
-                var scrapper = new TimetableScrapper();
-                var jsonChanges = await scrapper.Scrapper(rawTimetable);
-                return Ok(jsonChanges);
-            }
-            catch (HttpRequestException exception)
-            {
-                return Problem(exception.Message);
-            }
-        }
-
-        [HttpGet("changes")]
-        [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult> GetChangesAsync()
-        {
-            try
-            {
-                var rawChanges = await _client.GetStreamAsync("https://localhost:5005/Timetable/zmiany");
-                var scrapper = new ChangesScrapper();
-                var jsonChanges = await scrapper.Scrapper(rawChanges);
+                var jsonChanges = await TimetableScrapper.Scrap(rawTimetable);
                 return Ok(jsonChanges);
             }
             catch (HttpRequestException exception)

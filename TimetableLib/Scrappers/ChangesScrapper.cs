@@ -10,10 +10,10 @@ using TimetableLib.Changes;
 
 namespace ZseTimetable
 {
-    public class ChangesScrapper
+    public static class ChangesScrapper
     {
 
-        public async Task<IEnumerable<TeacherReplacement>> Scrapper(Stream RawChanges)
+         public static async Task<IEnumerable<TeacherReplacement>> Scrap(Stream RawChanges)
         {
             int tHeaderCellsNumber = 5;
             var stmReader = new StreamReader(RawChanges, Encoding.GetEncoding("iso-8859-2"));
@@ -63,6 +63,7 @@ namespace ZseTimetable
                     cr.Sub = row[2][(row[2].LastIndexOf(">")+1)..];
                     cr.Note = row[3][(row[3].LastIndexOf(">")+1)..];
                     replacement.ClassReplacements.Add(cr);
+                    
                 }
                 teachersReplacements.Add(replacement);
             }

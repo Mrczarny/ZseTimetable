@@ -9,10 +9,10 @@ using TimetableLib.Timetables;
 
 namespace ZseTimetable
 {
-    public class TimetableScrapper
+    public static class TimetableScrapper
     {
 
-        private ClassDay ClasDayScrapper(string[] column)
+        private static ClassDay ClasDayScrapper(string[] column)
         {
             ClassDay classDay = new ClassDay { Lessons = new List<ClassLesson>() };
             classDay.DayOfWeek = (DayOfWeek)Array.IndexOf(new CultureInfo("pl-PL").DateTimeFormat.DayNames, column[0]); //TODO - Move CultureInfo to global 
@@ -34,9 +34,11 @@ namespace ZseTimetable
             }
             return classDay;
         }
-        public async Task<ClassTimetable> Scrapper(Stream RawTimetable)
+        public static async Task<ClassTimetable> Scrap(Stream RawTimetable)
         {
             var stmReader = new StreamReader(RawTimetable);
+
+
 
             var rawHtml = (await stmReader.ReadToEndAsync()).ToLower();
             var body = rawHtml[rawHtml.IndexOf("<body")..rawHtml.LastIndexOf("</body>")].Replace("\r\n", String.Empty);

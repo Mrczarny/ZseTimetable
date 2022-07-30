@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TimetableLib.Models;
 using TimetableLib.Timetables;
 
 namespace ZseTimetable
@@ -12,68 +13,84 @@ namespace ZseTimetable
     public static class TimetableScrapper
     {
 
-        private static ClassDay ClasDayScrapper(string[] column)
+        private static IEnumerable<ClassLesson>? ScrapClassLesson(string rawLesson, int lessonNumber)
         {
-            ClassDay classDay = new ClassDay { Lessons = new List<ClassLesson>() };
-            classDay.DayOfWeek = (DayOfWeek)Array.IndexOf(new CultureInfo("pl-PL").DateTimeFormat.DayNames, column[0]); //TODO - Move CultureInfo to global 
-            Regex LessonNameRx = new Regex(@"p\"">(?<LessonName>.+?)<.+?n\"">(?<TeacherName>.+?)<.+?s\"">(?<Classroom>.+?)<", RegexOptions.Compiled);
-            for (int i = 1; i < column.Length; i++)
+            Regex LessonNameRx = new Regex(@"<.*?>((((?<lessonName>[^-<>\n]+).*?(?<GroupName>(?<=-)[^<> ]+))|(?<lessonName>[^<>\n]+)).*?""((?<teacherLink>(?<="").*?\.html)|).*?>(?<teacherName>[^<>\n\s]+)<.*?""((?<classroomLink>(?<="").*?\.html)|).*?>(?<classroomName>(?<!</a>|</span>)[^<>\n]+)<.*?)(<br>|</td>|)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+            MatchCollection LessonMatches = LessonNameRx.Matches(rawLesson);
+
+            foreach (Match match in LessonMatches)
             {
-                MatchCollection LessonMatches = LessonNameRx.Matches(column[i]);
-                foreach (Match match in LessonMatches)
+                ClassLesson Lesson = new ClassLesson
                 {
-                    GroupCollection groups = match.Groups;
-                    ClassLesson Lesson = new ClassLesson
-                    {
-                        Classroom = groups["Classroom"].Value,
-                        LessonName = groups["LessonName"].Value,
-                        TeacherName = groups["TeacherName"].Value
-                    };
-                    classDay.Lessons.Add(Lesson);
+                    LessonNumber = lessonNumber,
+                    LessonName = match.Groups["lessonName"].Value,
+                    TeacherName = match.Groups["teacherName"].Value,
+                    TeacherLink = match.Groups["teacherLink"].Value,
+                    Classroom = match.Groups["classroomName"].Value,
+                    ClassroomLink = match.Groups["classroomLink"].Value,
+                    Group = match.Groups["GroupName"].Value
+                };
+                yield return Lesson;
+            }
+        }
+
+
+        private static IList<ClassDay> ScrapRawTable(string rawTable)
+        {
+            var rawLessonsMatches =
+                new Regex(@"<tr>.*?nr"">(?<lessonNumber>\d+).*?g"">(?<lessonHours>.*?)<.*?(?<lessons><td.*?)</tr>",
+                    RegexOptions.Compiled | RegexOptions.Singleline).Matches(rawTable);
+            
+            var classDays = new List<ClassDay>();
+            var tds = rawLessonsMatches[0].Groups["lessons"].Value.Split("</td>");
+            for (int i = 0; i < tds.Length-1; i++)
+            {
+                var day = new ClassDay();
+                day.Lessons = new List<ClassLesson>();
+                day.Day = (DayOfWeek)i;
+                classDays.Add(day);
+            }
+
+            
+            foreach (Match lessonsMatch in rawLessonsMatches)
+            {
+                var lessonNumber = int.Parse(lessonsMatch.Groups["lessonNumber"].Value);
+                var lessonHours = lessonsMatch.Groups["lessonHours"].Value;
+                var rawLessons = lessonsMatch.Groups["lessons"].Value;
+                tds = rawLessons.Split("</td>");
+                for (int i = 0; i < tds.Length - 1; i++)
+                {
+                    var lessons = ScrapClassLesson(tds[i], lessonNumber);
+                    classDays[i].Lessons.AddRange(lessons);
                 }
             }
-            return classDay;
+
+            return classDays;
         }
+
+
         public static async Task<ClassTimetable> Scrap(Stream RawTimetable)
         {
             var stmReader = new StreamReader(RawTimetable);
+            var rawHtml = await stmReader.ReadToEndAsync();
+            var rawBodyMatch = new Regex(@"<body>.*?tytulnapis"">(?<ClassName>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
+                RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture)
+                .Match(rawHtml);
 
+            var classnameRaw = rawBodyMatch.Groups["ClassName"].Value;
+            var rawTable = rawBodyMatch.Groups["Table"].Value;
+            var startDate = DateTime.Parse(rawBodyMatch.Groups["startDate"].Value);
+            var endDate = DateTime.Parse(rawBodyMatch.Groups["endDate"].Value);
 
-
-            var rawHtml = (await stmReader.ReadToEndAsync()).ToLower();
-            var body = rawHtml[rawHtml.IndexOf("<body")..rawHtml.LastIndexOf("</body>")].Replace("\r\n", String.Empty);
-            var timetableRaw = body[body.IndexOf("class=\"tabela\"")..].Split("</table>")[0];                                  //It's painful just to look at it
-            var classnameRaw = body[body.IndexOf("<table")..body.IndexOf("</table>")];                                                         //but it works, so it's good for now
-                                                                                                                                //TODO - do it with regex
-
-            var trs = timetableRaw.Split("<tr>")[1..];
-            var rows = trs[0].Split("</th>")[..^1];
-            for (int i = 1; i < trs.Length; i++)
+            return new ClassTimetable
             {
-                var tds = trs[i].Split("</td>")[..^1];
-                for (int j = 0; j < rows.Length; j++)
-                {
-                    //var cell = tds[j].Substring(tds[j].IndexOf('>')+1);
-                    rows[j] += "," + tds[j];
-                }
-            }
-
-            List<string[]> columns = new List<string[]>();                                  //some extensive number of fors
-            for (int i = 0; i < rows.Length; i++)
-            {
-                var cells = rows[i].Split(',');
-                for (int j = 0; j < cells.Length; j++)
-                {
-                    cells[j] = cells[j].Substring(cells[j].IndexOf('>') + 1);
-                }
-                columns.Add(cells);
-            }
-            var clasDay = ClasDayScrapper(columns[2]);
+                ClassName = classnameRaw,
+                StartDate = startDate,
+                EndDate = endDate,
+                Days = ScrapRawTable(rawTable)
+            };
 
 
-
-
-            return new ClassTimetable();
         }
     }
 }

@@ -12,7 +12,6 @@ namespace ZseTimetable
 {
     public static class TimetableScrapper
     {
-
         private static IEnumerable<ClassLesson>? ScrapClassLesson(string rawLesson, int lessonNumber)
         {
             Regex LessonNameRx = new Regex(@"<.*?>((((?<lessonName>[^-<>\n]+).*?(?<GroupName>(?<=-)[^<> ]+))|(?<lessonName>[^<>\n]+)).*?""((?<teacherLink>(?<="").*?\.html)|).*?>(?<teacherName>[^<>\n\s]+)<.*?""((?<classroomLink>(?<="").*?\.html)|).*?>(?<classroomName>(?<!</a>|</span>)[^<>\n]+)<.*?)(<br>|</td>|)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -33,8 +32,6 @@ namespace ZseTimetable
                 yield return Lesson;
             }
         }
-
-
         private static IList<ClassDay> ScrapRawTable(string rawTable)
         {
             var rawLessonsMatches =
@@ -51,7 +48,6 @@ namespace ZseTimetable
                 classDays.Add(day);
             }
 
-            
             foreach (Match lessonsMatch in rawLessonsMatches)
             {
                 var lessonNumber = int.Parse(lessonsMatch.Groups["lessonNumber"].Value);
@@ -69,27 +65,19 @@ namespace ZseTimetable
         }
 
 
-        public static async Task<ClassTimetable> Scrap(Stream RawTimetable)
+        public static async Task<ClassTimetable> Scrap(string rawHtml)
         {
-            var stmReader = new StreamReader(RawTimetable);
-            var rawHtml = await stmReader.ReadToEndAsync();
             var rawBodyMatch = new Regex(@"<body>.*?tytulnapis"">(?<ClassName>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
                 RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture)
                 .Match(rawHtml);
 
-            var classnameRaw = rawBodyMatch.Groups["ClassName"].Value;
-            var rawTable = rawBodyMatch.Groups["Table"].Value;
-            var startDate = DateTime.Parse(rawBodyMatch.Groups["startDate"].Value);
-            var endDate = DateTime.Parse(rawBodyMatch.Groups["endDate"].Value);
-
-            return new ClassTimetable
+             return new ClassTimetable
             {
-                ClassName = classnameRaw,
-                StartDate = startDate,
-                EndDate = endDate,
-                Days = ScrapRawTable(rawTable)
+                ClassName = rawBodyMatch.Groups["ClassName"].Value,
+                StartDate = DateTime.Parse(rawBodyMatch.Groups["startDate"].Value).Date,
+                EndDate = DateTime.TryParse(rawBodyMatch.Groups["endDate"].Value, out DateTime date) ? date.Date : (DateTime?)null,
+                Days = ScrapRawTable(rawBodyMatch.Groups["Table"].Value)
             };
-
 
         }
     }

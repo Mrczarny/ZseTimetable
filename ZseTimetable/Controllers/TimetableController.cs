@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TimetableLib;
+using TimetableLib.Timetables;
 
 namespace ZseTimetable.Controllers
 {
@@ -27,13 +29,14 @@ namespace ZseTimetable.Controllers
         [HttpGet("{id}")]
         [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult> GetClassTimetableAsync(int id = 1)
+        public async Task<ActionResult<ClassTimetable>> GetClassTimetableAsync(int id = 1)
         {
             try
             {
-                var rawTimetable = await _client.GetStreamAsync("https://localhost:5005/Timetable/plany");
-                var jsonChanges = await TimetableScrapper.Scrap(rawTimetable);
-                return Ok(jsonChanges);
+                var rawTimetable = await _client.GetStreamAsync("https://localhost:5005/MockServer/plany");
+                var jsonChanges = await TimetableScrapper.Scrap(await new StreamReader(rawTimetable).ReadToEndAsync());
+                rawTimetable.Close();
+                return jsonChanges;
             }
             catch (HttpRequestException exception)
             {

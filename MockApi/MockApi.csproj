@@ -5,11 +5,51 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Files\changes\z1.html" />
+    <None Remove="Files\changes\z2.html" />
+    <None Remove="Files\changes\z3.html" />
+    <None Remove="Files\changes\z4.html" />
+    <None Remove="Files\changes\z5.html" />
+    <None Remove="Files\changes\z6.html" />
     <None Remove="Files\o1.html" />
+    <None Remove="Files\timetables\o2.html" />
+    <None Remove="Files\timetables\o3.html" />
+    <None Remove="Files\timetables\o4.html" />
+    <None Remove="Files\timetables\o6.html" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Files\o1.html">
+    <EmbeddedResource Include="Files\changes\z1.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\changes\z2.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\changes\z3.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\changes\z4.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\changes\z5.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\changes\z6.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\timetables\o1.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\timetables\o2.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\timetables\o6.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\timetables\o4.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Files\timetables\o3.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

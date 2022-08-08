@@ -1,9 +1,11 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TimetableLib.Models.Replacements;
 
 namespace ZseTimetable.Controllers
 {
@@ -22,13 +24,14 @@ namespace ZseTimetable.Controllers
 
         [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult> GetChangesAsync()
+        public async Task<ActionResult<DayReplacement>> GetChangesAsync()
         {
             try
             {
-                var rawChanges = await _client.GetStreamAsync("https://localhost:5005/Timetable/zmiany");
-                var jsonChanges = await ChangesScrapper.Scrap(rawChanges);
-                return Ok(jsonChanges);
+                var rawChanges = await _client.GetStreamAsync("https://localhost:5005/MockServer/zmiany");
+                var jsonChanges = ChangesScrapper.Scrap(await new StreamReader(rawChanges).ReadToEndAsync());
+                rawChanges.Close();
+                return jsonChanges;
             }
             catch (HttpRequestException exception)
             {

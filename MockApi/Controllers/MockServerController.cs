@@ -10,12 +10,12 @@ namespace MockApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TimetableController : ControllerBase
+    public class MockServerController : ControllerBase
     {
+        
+        private readonly ILogger<MockServerController> _logger;
 
-        private readonly ILogger<TimetableController> _logger;
-
-        public TimetableController(ILogger<TimetableController> logger)
+        public MockServerController(ILogger<MockServerController> logger)
         {
             _logger = logger;
         }
@@ -23,14 +23,16 @@ namespace MockApi.Controllers
         [HttpGet("zmiany")]
         public Stream GetReplacements()
         {
-            var html = System.IO.File.Open(@"./Files/ddd.html", FileMode.Open);
+            Random random = new Random();
+            var html = System.IO.File.OpenRead($"./Files/changes/z{random.Next(1,7)}.html");
             return html;
         }
 
         [HttpGet("plany")]
         public Stream GetClassTimetable()
         {
-            var html = System.IO.File.OpenRead(@"./Files/o1.html");
+            Random random = new Random();
+            var html = System.IO.File.OpenRead($"./Files/timetables/o{random.Next(1,7)}.html");
             return html;
         }
     }

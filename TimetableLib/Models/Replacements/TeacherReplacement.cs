@@ -7,6 +7,6 @@ namespace TimetableLib.Changes
     {
         public long? Id { get; set; }
         public Teacher Teacher { get; set; }
-        public List<ClassReplacement> ClassReplacements { get; set; }
+        public IEnumerable<ClassReplacement> ClassReplacements { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace TimetableLib.Timetables
 {
-    public class ClassLesson
+    public class Lesson
     {
         public long Id { get; set; }
         public int LessonNumber { get; set; }

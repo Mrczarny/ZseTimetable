@@ -6,10 +6,10 @@ using TimetableLib.Changes;
 namespace TimetableLib.Models.Replacements
 {
     //Contains one day's replacements 
-    public class DayReplacement
+    public class DayReplacements
     {
         public int Id { get; set; }
         public DateTime? Date { get; set; }
-        public IEnumerable<TeacherReplacement>? Replacements { get; set; }
+        public IEnumerable<TeacherReplacements>? Replacements { get; set; }
     }
 }

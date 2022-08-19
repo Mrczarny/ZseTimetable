@@ -2,7 +2,7 @@
 
 namespace TimetableLib.Changes
 {
-    public class ClassReplacement
+    public class LessonReplacement
     {
         public long? Id { get; set; }
         public string LessonNumber { get; set; }

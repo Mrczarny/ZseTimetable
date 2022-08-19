@@ -5,21 +5,34 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using TimetableLib.Models;
 using TimetableLib.Timetables;
 
 namespace ZseTimetable
 {
-    public static class TimetableScrapper
+    public class TimetableScrapper
     {
-        private static IEnumerable<ClassLesson>? ScrapClassLesson(string rawLesson, int lessonNumber)
+        private readonly IReadOnlyDictionary<string,Regex> _dic;
+        public TimetableScrapper(IReadOnlyDictionary<string, IReadOnlyDictionary<string,int>> dic)
         {
-            Regex LessonNameRx = new Regex(@"<.*?>((((?<lessonName>[^-<>\n]+).*?(?<GroupName>(?<=-)[^<> ]+))|(?<lessonName>[^<>\n]+)).*?""((?<teacherLink>(?<="").*?\.html)|).*?>(?<teacherName>[^<>\n\s]+)<.*?""((?<classroomLink>(?<="").*?\.html)|).*?>(?<classroomName>(?<!</a>|</span>)[^<>\n]+)<.*?)(<br>|</td>|)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+            _dic = ;
+            //configuration.GetChildren().ToDictionary(x => x.Key, x => new Regex(
+            //    x.GetSection("Pattern").Value,
+            //    (RegexOptions)int.Parse(x.GetSection("RegexOptions").Value)
+            //));
+        }
+
+        
+        private IEnumerable<Lesson>? ScrapLesson<T>(string rawLesson, int lessonNumber)
+        {
+            Regex LessonNameRx = _dic[nameof(T)];
+            // new Regex(@"<.*?>((((?<lessonName>[^-<>\n]+).*?(?<GroupName>(?<=-)[^<> ]+))|(?<lessonName>[^<>\n]+)).*?""((?<teacherLink>(?<="").*?\.html)|).*?>(?<teacherName>[^<>\n\s]+)<.*?""((?<classroomLink>(?<="").*?\.html)|).*?>(?<classroomName>(?<!</a>|</span>)[^<>\n]+)<.*?)(<br>|</td>|)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
             MatchCollection LessonMatches = LessonNameRx.Matches(rawLesson);
 
             foreach (Match match in LessonMatches)
             {
-                ClassLesson Lesson = new ClassLesson
+                Lesson Lesson = new Lesson
                 {
                     LessonNumber = lessonNumber,
                     LessonName = match.Groups["lessonName"].Value,
@@ -32,18 +45,22 @@ namespace ZseTimetable
                 yield return Lesson;
             }
         }
-        private static IList<ClassDay> ScrapRawTable(string rawTable)
+
+        
+
+        private IList<TimetableDay> ScrapRawTable<T>(string rawTable)
         {
-            var rawLessonsMatches =
-                new Regex(@"<tr>.*?nr"">(?<lessonNumber>\d+).*?g"">(?<lessonHours>.*?)<.*?(?<lessons><td.*?)</tr>",
-                    RegexOptions.Compiled | RegexOptions.Singleline).Matches(rawTable);
+            var rawLessonsMatches = _dic[nameof(ScrapRawTable)].Matches(rawTable);
+            //new Regex(@"<tr>.*?nr"">(?<lessonNumber>\d+).*?g"">(?<lessonHours>.*?)<.*?(?<lessons><td.*?)</tr>",
+            //        RegexOptions.Compiled | RegexOptions.Singleline).Matches(rawTable);
             
-            var classDays = new List<ClassDay>();
+            
+            var classDays = new List<TimetableDay>();
             var tds = rawLessonsMatches[0].Groups["lessons"].Value.Split("</td>");
             for (int i = 0; i < tds.Length-1; i++)
             {
-                var day = new ClassDay();
-                day.Lessons = new List<ClassLesson>();
+                var day = new TimetableDay();
+                day.Lessons = new List<Lesson>();
                 day.Day = (DayOfWeek)i;
                 classDays.Add(day);
             }
@@ -56,7 +73,7 @@ namespace ZseTimetable
                 tds = rawLessons.Split("</td>");
                 for (int i = 0; i < tds.Length - 1; i++)
                 {
-                    var lessons = ScrapClassLesson(tds[i], lessonNumber);
+                    var lessons = ScrapLesson<T>(tds[i], lessonNumber);
                     classDays[i].Lessons.AddRange(lessons);
                 }
             }
@@ -65,18 +82,19 @@ namespace ZseTimetable
         }
 
 
-        public static async Task<ClassTimetable> Scrap(string rawHtml)
+        public async Task<Timetable> Scrap<T>(string rawHtml)
         {
-            var rawBodyMatch = new Regex(@"<body>.*?tytulnapis"">(?<ClassName>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
-                RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture)
-                .Match(rawHtml);
+            var rawBodyMatch = _dic[nameof(Scrap)].Matche(rawHtml);
+            //new Regex(@"<body>.*?tytulnapis"">(?<Title>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
+            //RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture)
+            //.Match(rawHtml);
 
-             return new ClassTimetable
+            return new Timetable
             {
-                ClassName = rawBodyMatch.Groups["ClassName"].Value,
+                Title = rawBodyMatch.Groups["Title"].Value,
                 StartDate = DateTime.Parse(rawBodyMatch.Groups["startDate"].Value).Date,
                 EndDate = DateTime.TryParse(rawBodyMatch.Groups["endDate"].Value, out DateTime date) ? date.Date : (DateTime?)null,
-                Days = ScrapRawTable(rawBodyMatch.Groups["Table"].Value)
+                Days = ScrapRawTable<T>(rawBodyMatch.Groups["Table"].Value)
             };
 
         }

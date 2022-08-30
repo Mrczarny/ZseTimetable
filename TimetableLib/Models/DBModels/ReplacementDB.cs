@@ -6,6 +6,8 @@ namespace TimetableLib.Models.DBModels
 {
     public class ReplacementDB
     {
-        l
+        public long Id { get; set; }
+        public long LessonId { get; set; }
+        public string Note { get; set; }
     }
 }

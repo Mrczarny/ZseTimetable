@@ -2,7 +2,6 @@
 {
     public class Lesson
     {
-        public long Id { get; set; }
         public int LessonNumber { get; set; }
         public string LessonName { get; set; }
         public string TeacherName { get; set; }

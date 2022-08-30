@@ -4,7 +4,10 @@ using System.Text;
 
 namespace TimetableLib.Models.DBModels
 {
-    internal class TimetableDayDB
+    public class TimetableDayDB
     {
+        public long Id { get; set; }
+        public long TimetableId { get; set; }
+        public DateTime Day { get; set; }
     }
 }

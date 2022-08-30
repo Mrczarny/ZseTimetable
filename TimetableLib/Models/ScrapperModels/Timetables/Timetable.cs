@@ -6,7 +6,6 @@ namespace TimetableLib.Timetables
 {
     public class Timetable
     {
-        public long Id { get; set; }
         public string Title { get; set; }
         public IList<TimetableDay> Days { get; set; } 
         public DateTime StartDate { get; set; }

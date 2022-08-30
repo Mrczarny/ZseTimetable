@@ -5,7 +5,6 @@ namespace TimetableLib.Models.ScrapperModels
 {
     public class Teacher : IScrappable
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public string ShortName { get; set; }
         public Timetable Timetable { get; set; }

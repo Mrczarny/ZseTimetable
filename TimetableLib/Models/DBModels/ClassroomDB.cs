@@ -4,7 +4,13 @@ using System.Text;
 
 namespace TimetableLib.Models.DBModels
 {
-    internal class ClassroomDB
+    public class ClassroomDB
     {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public short Number { get; set; }
+        public long TimetableId { get; set; }
+        public string TimetableLink { get; set; }
+
     }
 }

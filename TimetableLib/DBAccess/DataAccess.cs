@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
 using System.Text;
 
 namespace TimetableLib.DataAccess
@@ -8,7 +7,7 @@ namespace TimetableLib.DataAccess
     public class DataAccess
     {
         private string ConnectionString;
-        public DataAccess(string _connectionString, IConfiguration config)
+        public DataAccess(string _connectionString)
         {
             ConnectionString = _connectionString;
         }

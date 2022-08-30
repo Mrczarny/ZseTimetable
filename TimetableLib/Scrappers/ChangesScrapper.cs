@@ -13,15 +13,25 @@ using TimetableLib.Models.ScrapperModels;
 
 namespace ZseTimetable
 {
-    public static class ChangesScrapper
+    public class ChangesScrapper
     {
-
-        private static IEnumerable<LessonReplacement> ScrapClassReplacements(string rawClassReplacements)
+        private readonly IReadOnlyDictionary<string, Regex> _dic;
+        public ChangesScrapper(IEnumerable<ScrapperOption> options)
         {
-            var replacementsMatches = new Regex(
-                @"<tr>.*?>\s*?(?<lessonNumber>\d+)\s*?<.*?<td.*?>\s*?(?<Description>\S[^<>]+?)\s*?<.*?<td.*?>\s*?(?<Sub>\S[^<>]+?)\s*?<.*?<td.*?>\s*?(?<Note>\S[^<>]+?)\s*?<.*?</tr>",
-                RegexOptions.Compiled | RegexOptions.Singleline).
+            _dic = options.ToDictionary(x => x.Name, x => new Regex(
+                x.Pattern,
+                (RegexOptions)x.RegexOptions
+            ));
+        }
+
+        private IEnumerable<LessonReplacement> ScrapClassReplacements(string rawClassReplacements)
+        {
+            var replacementsMatches = _dic[nameof(ScrapClassReplacements)].
                 Matches(rawClassReplacements);
+            //new Regex(
+            //    @"<tr>.*?>\s*?(?<lessonNumber>\d+)\s*?<.*?<td.*?>\s*?(?<Description>\S[^<>]+?)\s*?<.*?<td.*?>\s*?(?<Sub>\S[^<>]+?)\s*?<.*?<td.*?>\s*?(?<Note>\S[^<>]+?)\s*?<.*?</tr>",
+            //    RegexOptions.Compiled | RegexOptions.Singleline)
+            
             foreach (Match replacementsMatch in replacementsMatches)
             {
                 yield return new LessonReplacement()
@@ -34,11 +44,12 @@ namespace ZseTimetable
             }
         }
 
-        private static IEnumerable<TeacherReplacements>? ScrapTeacherReplacements(string rawTeacherReplacements)
+        private IEnumerable<TeacherReplacements>? ScrapTeacherReplacements(string rawTeacherReplacements)
         {
-            var tReplacementsRegex = new Regex(
-                @"<tr>[^<]*?<td[^<]*?(?<TeacherName>\w+( \w+)+)[^<]*?</td>[^<]*?</tr>(?<rawClassReplacements>.*?)",
-                RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.RightToLeft | RegexOptions.ExplicitCapture);
+            var tReplacementsRegex = _dic[nameof(ScrapTeacherReplacements)];
+            //new Regex(
+            //    @"<tr>[^<]*?<td[^<]*?(?<TeacherName>\w+( \w+)+)[^<]*?</td>[^<]*?</tr>(?<rawClassReplacements>.*?)",
+            //    RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.RightToLeft | RegexOptions.ExplicitCapture)
             var tReplacementMatches = tReplacementsRegex.Matches(rawTeacherReplacements);
             foreach (Match replacementMatch in tReplacementMatches)
             {
@@ -54,9 +65,10 @@ namespace ZseTimetable
 
         }
         
-         public static DayReplacements Scrap(string rawHtml)
+         public DayReplacements Scrap(string rawHtml)
         {
-            var trMatch = new Regex(@"<nobr>(?<replacementHeader>.*?(?<replacementDate>\d{1,2}\.\d{1,2}\.\d{4}).*?)</nobr>.*?(?<replacements><tr>.*</tr>)", RegexOptions.Compiled | RegexOptions.Singleline).Match(rawHtml);
+            var trMatch = _dic[nameof(Scrap)].Match(rawHtml);
+            // new Regex(@"<nobr>(?<replacementHeader>.*?(?<replacementDate>\d{1,2}\.\d{1,2}\.\d{4}).*?)</nobr>.*?(?<replacements><tr>.*</tr>)", RegexOptions.Compiled | RegexOptions.Singleline)
 
             return new DayReplacements()
             {

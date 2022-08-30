@@ -25,31 +25,38 @@ namespace ZseTimetable.Controllers
     {
         private readonly ILogger<TimetableController> _logger;
         private readonly HttpClient _client;
-        private readonly DataAccess _db;
+        private DataAccess _db;
         private readonly TimetableScrapper _scrapper;
 
-        public TimetableController(IConfiguration config, ILogger<TimetableController> logger )
+        public TimetableController(IConfiguration config, ILogger<TimetableController> logger, DataAccess db)
         {
             _logger = logger;
             _client = new HttpClient();
-            //_db = db;
-            _scrapper = new TimetableScrapper(
-                config.GetSection("Regex").GetSection("Timetable").GetChildren().ToDictionary(x => x.Key,
-                    x => new Dictionary<string, int>(x.GetSection("Pattern").Value, int.Parse(x.GetSection("RegexOptions").Value))));
+            _db = db;
+            _scrapper = new TimetableScrapper(config.GetSection(ScrapperOption.Position)
+                .GetSection("Timetable")
+                .GetChildren().Select(x => x.Get<ScrapperOption>())
+            );
+
         }
 
         [HttpGet("{id}")]
         [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<Timetable>> GetNewClassTimetableAsync(int id = 1)
+        public async Task<ActionResult<Timetable>> GetClassTimetableAsync(int id = 1)
         {
             try
             {
+                //Get latest from db
+                var classLs = _db.Get<Class>(id);
+                
+                classLs.Timetable.Days = _db.Get<Replacement>(classLs.Id); //adds all needed replacements
+                
+
                 var rawTimetable = await _client.GetStreamAsync("https://localhost:5005/MockServer/plany");
-                var jsonChanges = await _scrapper.Scrap<Teacher>(await new StreamReader(rawTimetable).ReadToEndAsync());
-                rawTimetable.Close();
+                var jsonChanges = await _scrapper.Scrap<Class>(await new StreamReader(rawTimetable).ReadToEndAsync());
+                
                 //_db.Update<Timetable>(id);
-                _client.Dispose();
                 return jsonChanges;
             }
             catch (HttpRequestException exception)
@@ -58,17 +65,17 @@ namespace ZseTimetable.Controllers
             }
         }
 
-        public async Task<ActionResult<Timetable>> GetClassTimetableAsync(int id = 1)
-        {
-            try
-            {
-                return _db.Get<Timetable>(id);
-            }
-            catch (HttpRequestException exception)
-            {
-                return Problem(exception.Message);
-            }
-        }
+        //public async Task<ActionResult<Timetable>> GetClassTimetableAsync(int id = 1)
+        //{
+        //    try
+        //    {
+        //        return _db.Get<Timetable>(id);
+        //    }
+        //    catch (HttpRequestException exception)
+        //    {
+        //        return Problem(exception.Message);
+        //    }
+        //}
 
 
     }

@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using TimetableLib.Models;
+using TimetableLib.Models.ScrapperModels;
 using TimetableLib.Timetables;
 
 namespace ZseTimetable
@@ -14,19 +14,19 @@ namespace ZseTimetable
     public class TimetableScrapper
     {
         private readonly IReadOnlyDictionary<string,Regex> _dic;
-        public TimetableScrapper(IReadOnlyDictionary<string, IReadOnlyDictionary<string,int>> dic)
+        public TimetableScrapper(IEnumerable<ScrapperOption> options)
         {
-            _dic = ;
-            //configuration.GetChildren().ToDictionary(x => x.Key, x => new Regex(
-            //    x.GetSection("Pattern").Value,
-            //    (RegexOptions)int.Parse(x.GetSection("RegexOptions").Value)
-            //));
+            _dic = options.ToDictionary(x => x.Name, x => new Regex(
+                x.Pattern,
+                (RegexOptions)x.RegexOptions
+            ));
         }
 
-        
+
         private IEnumerable<Lesson>? ScrapLesson<T>(string rawLesson, int lessonNumber)
         {
-            Regex LessonNameRx = _dic[nameof(T)];
+            
+            Regex LessonNameRx = _dic[typeof(T).Name];
             // new Regex(@"<.*?>((((?<lessonName>[^-<>\n]+).*?(?<GroupName>(?<=-)[^<> ]+))|(?<lessonName>[^<>\n]+)).*?""((?<teacherLink>(?<="").*?\.html)|).*?>(?<teacherName>[^<>\n\s]+)<.*?""((?<classroomLink>(?<="").*?\.html)|).*?>(?<classroomName>(?<!</a>|</span>)[^<>\n]+)<.*?)(<br>|</td>|)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
             MatchCollection LessonMatches = LessonNameRx.Matches(rawLesson);
 
@@ -84,10 +84,16 @@ namespace ZseTimetable
 
         public async Task<Timetable> Scrap<T>(string rawHtml)
         {
-            var rawBodyMatch = _dic[nameof(Scrap)].Matche(rawHtml);
-            //new Regex(@"<body>.*?tytulnapis"">(?<Title>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
-            //RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture)
+            
+            var rawBodyMatch = _dic[nameof(Scrap)].Match(rawHtml);
+            var r = _dic[nameof(Scrap)];
+            var d = new Regex(
+                @"<body>.*?tytulnapis"">(?<Title>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
+                RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase |
+                RegexOptions.ExplicitCapture);
             //.Match(rawHtml);
+            r.Match(rawHtml);
+            d.Match(rawHtml);
 
             return new Timetable
             {

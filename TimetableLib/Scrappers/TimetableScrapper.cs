@@ -85,17 +85,13 @@ namespace ZseTimetable
         public async Task<Timetable> Scrap<T>(string rawHtml)
         {
             
-            var rawBodyMatch = _dic[nameof(Scrap)].Match(rawHtml);
-            var r = _dic[nameof(Scrap)];
-            var d = new Regex(
-                @"<body>.*?tytulnapis"">(?<Title>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
-                RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase |
-                RegexOptions.ExplicitCapture);
-            //.Match(rawHtml);
-            r.Match(rawHtml);
-            d.Match(rawHtml);
+            var rawBodyMatch = _dic[nameof(Scrap)].Match(rawHtml); 
+                //new Regex(
+                //@"<body>.*?tytulnapis"">(?<Title>.+?)<.+?(?<Table><table.+?</table>).*?obowiązuje od: (?<startDate>\d{2}\.\d{2}\.\d{4})(.*? do (?<endDate>\d{2}\.\d{2}\.\d{4}).*?|.*?)</body>",
+                //RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase |
+                //RegexOptions.ExplicitCapture);
 
-            return new Timetable
+                return new Timetable
             {
                 Title = rawBodyMatch.Groups["Title"].Value,
                 StartDate = DateTime.Parse(rawBodyMatch.Groups["startDate"].Value).Date,

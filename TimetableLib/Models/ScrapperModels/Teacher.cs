@@ -3,7 +3,7 @@ using TimetableLib.Timetables;
 
 namespace TimetableLib.Models.ScrapperModels
 {
-    public class Teacher : IScrappable
+    public class Teacher 
     {
         public string Name { get; set; }
         public string ShortName { get; set; }

@@ -6,10 +6,9 @@ using TimetableLib.Timetables;
 
 namespace TimetableLib.Models.ScrapperModels
 {
-    public class Class : IScrappable
+    public class Class
     {
         public string Name { get; set; }
         public Timetable Timetable { get; set; }
-        public Regex Regex { get; set; }
     }
 }

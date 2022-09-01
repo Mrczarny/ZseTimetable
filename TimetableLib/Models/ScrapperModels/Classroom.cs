@@ -6,7 +6,7 @@ using TimetableLib.Timetables;
 
 namespace TimetableLib.Models.ScrapperModels
 {
-    public class Classroom : IScrappable
+    public class Classroom
     {
         public string Name { get; set; }
         public Timetable Timetable { get; set; }

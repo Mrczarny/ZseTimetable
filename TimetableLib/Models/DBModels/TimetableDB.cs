@@ -7,6 +7,7 @@ namespace TimetableLib.Models.DBModels
     public class TimetableDB
     {
         public long Id { get; set; }
+        public IEnumerable<TimetableDayDB> Days { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
     }

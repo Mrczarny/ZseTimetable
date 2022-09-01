@@ -9,6 +9,7 @@ namespace TimetableLib.Models.DBModels
         public long Id { get; set; }
         public string Name { get; set; }
         public long TimetableId { get; set; }
+        public TimetableDB Timetable { get; set; }
         public string TimetableLink { get; set; }
     }
 }

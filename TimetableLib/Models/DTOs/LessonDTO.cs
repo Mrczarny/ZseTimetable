@@ -1,7 +1,20 @@
-﻿namespace TimetableLib.Models.DTOs
+﻿using TimetableLib.Models.DBModels;
+
+namespace TimetableLib.Models.DTOs
 {
     public class LessonDTO
     {
+        public LessonDTO(LessonDB ls)
+        {
+            Id = ls.Id;
+            Name = ls.Name;
+            LessonNumber = ls.LessonNumber;
+            GroupNumber = ls.GroupNumber;
+            ClassId = ls.ClassId;
+            TeacherId = ls.TeacherId;
+            ClassroomId = ls.ClassroomId;
+        }
+
         public long Id { get; set; }
         public byte LessonNumber { get; set; }
         public byte? GroupNumber { get; set; }

@@ -7,13 +7,10 @@ using TimetableLib.Timetables;
 
 namespace TimetableLib.Models.ScrapperModels
 {
-    public class Class : IScrappable
+    public interface IScrappable
     {
-        public string Name { get; set; }
-        public Timetable Timetable { get; set; }
-        public IDBModel GetDBModel()
-        {
-            return new ClassDB(this);
-        }
+        string Name { get; set; }
+        Timetable Timetable { get; set; }
+        public IDBModel GetDBModel();
     }
 }

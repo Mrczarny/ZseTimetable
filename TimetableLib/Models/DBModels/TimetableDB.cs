@@ -10,6 +10,7 @@ namespace TimetableLib.Models.DBModels
 {
     public class TimetableDB : IDBModel
     {
+        public TimetableDB(){}
         public TimetableDB(Timetable tt)
         {
             StartDate = tt.StartDate;

@@ -8,6 +8,8 @@ namespace TimetableLib.Models.DBModels
 {
     public class ReplacementDB : IDBModel
     {
+        public ReplacementDB(){}
+
         [SqlType(SqlDbType.BigInt)]
         public long Id { get; set; }
         [SqlType(SqlDbType.BigInt)]

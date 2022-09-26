@@ -4,36 +4,30 @@ using System.Text;
 
 namespace TimetableLib.DataAccess
 {
-    public class DataAccess
+    public abstract class DataAccess
     {
-        private string ConnectionString;
-        public DataAccess(string _connectionString)
+
+        protected DataAccess()
         {
-            ConnectionString = _connectionString;
         }
 
-        public void Update<T>(int id)
-        {
-            // Update 
-        }
-        public void Create<T>()
-        {
-            // Create 
-        }
-        public void Delete<T>(int id)
-        {
-            // Delete 
-        }
-        public T Get<T>(int id)
-        {
-            // Get 
-            throw new NotImplementedException(); 
-        }
-        public T Get<T>()
-        {
-            // Get 
-            throw new NotImplementedException();
-        }
+        //Update
+        public abstract void Update<T>(int id, T record);
+
+        //Create
+        public abstract void Create<T>(T record);
+
+        // Delete 
+        public abstract void Delete<T>(int id);
+
+        // Get by id
+        public abstract T Get<T>(int id) where T : new();
+
+        // Get latest
+        public abstract T Get<T>() where T : new();
+
+        // Gets all records 
+        public abstract IEnumerable<T> GetAll<T>() where T : new();
 
     }
 }

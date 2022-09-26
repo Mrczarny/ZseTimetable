@@ -10,6 +10,7 @@ namespace TimetableLib.Models.DBModels
 {
     public class TimetableDayDB : IDBModel
     {
+        public TimetableDayDB(){}
         public TimetableDayDB(TimetableDay td)
         {
             Day = td.Day;

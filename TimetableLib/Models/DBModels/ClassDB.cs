@@ -9,6 +9,7 @@ namespace TimetableLib.Models.DBModels
 {
     public class ClassDB : IDBModel
     {
+        public ClassDB(){}
         public ClassDB(Class cl)
         {
             Name = cl.Name;

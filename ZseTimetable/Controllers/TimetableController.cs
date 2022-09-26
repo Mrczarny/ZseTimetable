@@ -14,7 +14,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TimetableLib;
 using TimetableLib.DataAccess;
-using TimetableLib.Models.ScrapperModels;
+using TimetableLib.Models.DBModels;
+using TimetableLib.Models.DTOs;
 using TimetableLib.Timetables;
 
 namespace ZseTimetable.Controllers
@@ -26,38 +27,36 @@ namespace ZseTimetable.Controllers
         private readonly ILogger<TimetableController> _logger;
         private readonly HttpClient _client;
         private DataAccess _db;
-        private readonly TimetableScrapper _scrapper;
+        //private readonly TimetableScrapper _scrapper;
 
-        public TimetableController(IConfiguration config, ILogger<TimetableController> logger, DataAccess db)
+        public TimetableController(IConfiguration config, ILogger<TimetableController> logger, DataAccess db, HttpClient client)
         {
             _logger = logger;
-            _client = new HttpClient();
+            _client = client;
             _db = db;
-            _scrapper = new TimetableScrapper(config.GetSection(ScrapperOption.Position)
-                .GetSection("Timetable")
-                .GetChildren().Select(x => x.Get<ScrapperOption>())
-            );
+            _client = client;
+            //_scrapper = new TimetableScrapper(config.GetSection(ScrapperOption.Position)
+            //    .GetSection("Timetable")
+            //    .GetChildren().Select(x => x.Get<ScrapperOption>())
+            //);
 
         }
 
         [HttpGet("{id}")]
-        [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<Timetable>> GetClassTimetableAsync(int id = 1)
+        public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(int id = 1)
         {
             try
             {
-                //Get latest from db
-                var classLs = _db.Get<Class>(id);
+                //Get latest populated(!) class from db
+                var classLs = _db.Get<ClassDB>(id);
                 
-                classLs.Timetable.Days = _db.Get<Replacement>(classLs.Id); //adds all needed replacements
-                
+                //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
 
-                var rawTimetable = await _client.GetStreamAsync("https://localhost:5005/MockServer/plany");
-                var jsonChanges = await _scrapper.Scrap<Class>(await new StreamReader(rawTimetable).ReadToEndAsync());
-                
-                //_db.Update<Timetable>(id);
-                return jsonChanges;
+
+
+                //returns DTO of timetable
+                return new ClassDTO(classLs);
             }
             catch (HttpRequestException exception)
             {
@@ -65,17 +64,20 @@ namespace ZseTimetable.Controllers
             }
         }
 
-        //public async Task<ActionResult<Timetable>> GetClassTimetableAsync(int id = 1)
-        //{
-        //    try
-        //    {
-        //        return _db.Get<Timetable>(id);
-        //    }
-        //    catch (HttpRequestException exception)
-        //    {
-        //        return Problem(exception.Message);
-        //    }
-        //}
+        [HttpGet]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<ClassDTO>>> GetAllClassTimetableAsync()
+        {
+            try
+            {
+                //returns DTOs of timetable
+                return _db.GetAll<ClassDB>().Select(x => new ClassDTO(x)).ToList(); // this cast is stupid but necessary 
+            }
+            catch (HttpRequestException exception)
+            {
+                return Problem(exception.Message);
+            }
+        }
 
 
     }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TimetableLib.DataAccess;
+using TimetableLib.Models.DBModels;
 using TimetableLib.Models.Replacements;
 using TimetableLib.Models.ScrapperModels;
 
@@ -21,13 +22,13 @@ namespace ZseTimetable.Controllers
         private readonly ILogger<ChangesController> _logger;
         private readonly HttpClient _client;
         private DateTime _lastScrap;
-        private DataAccess _db;
+        //private DataAccess _db;
         private readonly ChangesScrapper _scrapper;
 
-        public ChangesController(IConfiguration config, ILogger<ChangesController> logger)
+        public ChangesController(IConfiguration config, ILogger<ChangesController> logger, HttpClient client)
         {
             _logger = logger;
-            _client = new HttpClient();
+            _client = client;
             //_db = db;
             _scrapper = new ChangesScrapper(config.GetSection(ScrapperOption.Position)
                 .GetSection("Changes")
@@ -48,8 +49,9 @@ namespace ZseTimetable.Controllers
                     _lastScrap = DateTime.Now;
                     var jsonChanges = _scrapper.Scrap(await new StreamReader(rawChanges).ReadToEndAsync());
                     rawChanges.Close();
-                    //_db.Update<DayReplacements>(1);
+                    //_db.Update<ReplacementDB>(jsonChanges.Replacements);
                     return jsonChanges;
+
                 }
                 catch (HttpRequestException exception)
                 {

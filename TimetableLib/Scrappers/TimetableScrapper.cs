@@ -38,7 +38,7 @@ namespace ZseTimetable
                     LessonName = match.Groups["lessonName"].Value,
                     TeacherName = match.Groups["teacherName"].Value,
                     TeacherLink = match.Groups["teacherLink"].Value,
-                    Classroom = match.Groups["classroomName"].Value,
+                    ClassroomName = match.Groups["classroomName"].Value,
                     ClassroomLink = match.Groups["classroomLink"].Value,
                     Group = match.Groups["GroupName"].Value
                 };

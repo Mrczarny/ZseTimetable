@@ -122,10 +122,12 @@ namespace ZseTimetable.Services
                 {
                     try
                     {
-                        var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Head,
-                            $"{baseAddress}/{letter}{id}.html"));
-                        var d = response.Headers;
-                        if (DateTimeOffset.Parse(d.GetValues("Last-Modified").First()).AddYears(1) < response.Headers.Date.Value)
+                        var head = new HttpRequestMessage(HttpMethod.Head,
+                            $"{baseAddress}/{letter}{id}.html")
+                            {Headers = { IfModifiedSince = DateTime.Now.Subtract(TimeSpan.FromDays(365)).ToUniversalTime()
+                            }};
+                        var response = await client.SendAsync(head);
+                        if (!response.IsSuccessStatusCode)
                         {
                             break;
                         }

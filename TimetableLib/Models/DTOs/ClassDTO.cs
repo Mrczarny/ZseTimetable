@@ -9,7 +9,7 @@ namespace TimetableLib.Models.DTOs
     {
         public ClassDTO(ClassDB cl)
         {
-            Id = cl.Id;
+            Id = (long) cl.Id;
             Name = cl.Name;
             Timetable = new TimetableDTO(cl.Timetable);
         }

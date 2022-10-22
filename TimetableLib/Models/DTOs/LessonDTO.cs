@@ -6,10 +6,10 @@ namespace TimetableLib.Models.DTOs
     {
         public LessonDTO(LessonDB ls)
         {
-            Id = ls.Id;
+            Id = (long) ls.Id;
             Name = ls.Name;
             LessonNumber = ls.LessonNumber;
-            GroupNumber = ls.GroupNumber;
+            Group = ls.Group;
             ClassId = ls.ClassId;
             TeacherId = ls.TeacherId;
             ClassroomId = ls.ClassroomId;
@@ -17,7 +17,7 @@ namespace TimetableLib.Models.DTOs
 
         public long Id { get; set; }
         public byte LessonNumber { get; set; }
-        public byte? GroupNumber { get; set; }
+        public string Group { get; set; }
         public string Name { get; set; }
         public long? ClassId { get; set; }
         public string? ClassName { get; set; }

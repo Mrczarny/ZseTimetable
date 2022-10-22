@@ -6,7 +6,7 @@ namespace TimetableLib.Models.DTOs
     {
         public ClassroomDTO(ClassroomDB cr)
         {
-            Id = cr.Id;
+            Id = (long) cr.Id;
             Name = cr.Name;
             Number = cr.Number;
             Timetable = new TimetableDTO(cr.Timetable);

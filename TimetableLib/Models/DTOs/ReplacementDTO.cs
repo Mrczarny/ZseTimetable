@@ -6,7 +6,7 @@ namespace TimetableLib.Models.DTOs
     {
         public ReplacementDTO(ReplacementDB rp)
         {
-            Id = rp.Id;
+            Id = (long) rp.Id;
             Note = rp.Note;
             NewLesson = new LessonDTO(rp.NewLesson);
             OldLesson = new LessonDTO(rp.OldLesson);

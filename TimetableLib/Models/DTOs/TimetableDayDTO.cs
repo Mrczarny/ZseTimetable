@@ -9,7 +9,7 @@ namespace TimetableLib.Models.DTOs
     {
         public TimetableDayDTO(TimetableDayDB tb)
         {
-            Id = tb.Id;
+            Id = (long) tb.Id;
             Day = tb.Day;
             Lessons = tb.Lessons.Select(x => new LessonDTO(x));
         }

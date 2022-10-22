@@ -11,7 +11,7 @@ namespace TimetableLib.Models.DBModels
         public ReplacementDB(){}
 
         [SqlType(SqlDbType.BigInt)]
-        public long Id { get; set; }
+        public long? Id { get; set; }
         [SqlType(SqlDbType.BigInt)]
         public long OldLessonId { get; set; }
         public LessonDB OldLesson { get; set; }

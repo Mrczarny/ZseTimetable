@@ -7,7 +7,7 @@ using TimetableLib.Models.ScrapperModels;
 
 namespace TimetableLib.Models.DBModels
 {
-    public class ClassDB : IDBModel
+    public class ClassDB : IDBModel, ITimetables
     {
         public ClassDB(){}
         public ClassDB(Class cl)
@@ -17,8 +17,8 @@ namespace TimetableLib.Models.DBModels
 
         }
 
-        [SqlType(SqlDbType.BigInt)]
-        public long Id { get; set; }
+        //[SqlType(SqlDbType.BigInt)]
+        public long? Id { get; set; }
 
         [SqlType(SqlDbType.NVarChar)]
         public string Name { get; set; }
@@ -27,7 +27,6 @@ namespace TimetableLib.Models.DBModels
         public long TimetableId { get; set; }
         public TimetableDB Timetable { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
         public string TimetableLink { get; set; }
     }
 }

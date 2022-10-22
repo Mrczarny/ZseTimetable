@@ -16,12 +16,12 @@ namespace TimetableLib.Models.DBModels
             Day = td.Day;
             Lessons = td.Lessons.Select(x => new LessonDB(x));
         }
-        [SqlType(SqlDbType.BigInt)]
-        public long Id { get; set; }
+        //[SqlType(SqlDbType.BigInt)]
+        public long? Id { get; set; }
         [SqlType(SqlDbType.BigInt)]
         public long TimetableId { get; set; }
         public IEnumerable<LessonDB> Lessons { get; set; }
-        [SqlType(SqlDbType.Date)]
+        [SqlType(SqlDbType.SmallInt)]
         public DayOfWeek Day { get; set; }
     }
 }

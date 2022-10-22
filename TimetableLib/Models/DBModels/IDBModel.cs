@@ -7,6 +7,6 @@ namespace TimetableLib.Models.DBModels
 {
     public interface IDBModel
     {
-        public long Id { get; set; }
+        public long? Id { get; set; }
     }
 }

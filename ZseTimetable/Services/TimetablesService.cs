@@ -54,9 +54,9 @@ namespace ZseTimetable.Services
 
 
             //scrapper models to db models
-            IAsyncEnumerable<ClassDB> DbClasses = GetDBModels(classes) as IAsyncEnumerable<ClassDB>;
-            IAsyncEnumerable<ClassroomDB> DbClassrooms = GetDBModels(classrooms) as IAsyncEnumerable<ClassroomDB>; //TODO - make DoWork better
-            IAsyncEnumerable<TeacherDB> DbTeacher = GetDBModels(teachers) as IAsyncEnumerable<TeacherDB>;
+            var DbClasses = GetDBModels<ClassDB>(classes);
+            var DbClassrooms = GetDBModels<ClassroomDB>(classrooms); //TODO - make DoWork better
+            var DbTeacher = GetDBModels<TeacherDB>(teachers);
 
             //updates or creates record 
             DatabaseUpload(DbClasses);
@@ -64,26 +64,73 @@ namespace ZseTimetable.Services
             DatabaseUpload(DbTeacher);
         }
 
-        private async void DatabaseUpload<T>(IAsyncEnumerable<T> records) where T : IDBModel
+
+        private async void DatabaseUpload<T>(IAsyncEnumerable<T> dbModels) where T : ITimetables, new()
         {
-            //TODO - check to update 
-            await foreach (T dbModel in records)
+            await foreach (var dbModel in dbModels)
             {
-                _db.Create(dbModel);
+                try
+                {
+                    var record = _db.GetByName<T>(dbModel.Name);
+
+                    if (record != null)
+                    {
+                        record.Timetable = _db.Get<TimetableDB>(record.TimetableId);
+                        record.Timetable.Days = 
+                        _db.Update(record.TimetableId, dbModel.Timetable);
+                        _db.Update((long)record.Id, dbModel);
+                        foreach (var day in record.Timetable.Days)
+                        {
+                            var dbDay = dbModel.Timetable.Days.Single(x => x.Day == day.Day);
+                            _db.Update((long)day.Id, dbDay);
+                            foreach (var lesson in dbDay.Lessons)
+                                _db.Update((long)lesson.Id, );
+                            {
+                            }
+                        }
+                    }
+                    else
+                    {
+                        dbModel.TimetableId = _db.Create(dbModel.Timetable);
+                        dbModel.Id = _db.Create(dbModel);
+                        foreach (var day in dbModel.Timetable.Days)
+                        {
+                            day.TimetableId = dbModel.TimetableId;
+                            day.Id = _db.Create(day);
+                            foreach (var lesson in day.Lessons)
+                            {
+                                lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id").SetValue(lesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
+                                var lessonDay = new TimetableDayLessonDB
+                                {
+                                    LessonId = _db.Create(lesson),
+                                    TimetableDayId = (long)day.Id
+                                };
+                                _db.Create(lessonDay);
+
+                            }
+                        }
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e.Message);
+                    throw;
+                }
             }
+            
         }
 
-        private async IAsyncEnumerable<IDBModel> GetDBModels<T>(IEnumerable<T> scrpModels) where T : IScrappable
+        private async IAsyncEnumerable<T> GetDBModels<T>(IEnumerable<IScrappable> scrpModels) where T : class, IDBModel
         {
             foreach (var scrpModel in scrpModels)
             {
-                yield return scrpModel.GetDBModel();
+                yield return scrpModel.GetDBModel<T>();
             }
         }
 
         private async  Task<IEnumerable<T>> GetTimetable<T>(char letter) where T : IScrappable, new()
         {
-
             //gets all urls 
             var allUrls = GetAllUrls(letter);
             var allTimetables = new List<T>();
@@ -115,7 +162,7 @@ namespace ZseTimetable.Services
 
         private async IAsyncEnumerable<string> GetAllUrls(char letter)
         {
-            int id = 1;
+            int  id = 1;
             while (true)
             {
                 using (HttpClient client = new HttpClient())

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using TimetableLib.Models.DBModels.DBAttributes;
 using TimetableLib.Models.DTOs;
 using TimetableLib.Timetables;
 
@@ -17,7 +18,9 @@ namespace TimetableLib.Models.DBModels
             Group = ls.Group; //TODO - It will cause a crash
                                                 //Sure it did, for god's sake
         }
-        //[SqlType(SqlDbType.BigInt)]
+
+        [Identity]
+        [SqlType(SqlDbType.BigInt)]
         public long? Id { get; set; }
         [SqlType(SqlDbType.TinyInt)]
         public byte LessonNumber { get; set; }

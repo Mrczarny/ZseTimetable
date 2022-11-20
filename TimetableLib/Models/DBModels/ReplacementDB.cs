@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using TimetableLib.Models.DBModels.DBAttributes;
 using TimetableLib.Models.DTOs;
 
 namespace TimetableLib.Models.DBModels
@@ -10,6 +11,7 @@ namespace TimetableLib.Models.DBModels
     {
         public ReplacementDB(){}
 
+        [Identity]
         [SqlType(SqlDbType.BigInt)]
         public long? Id { get; set; }
         [SqlType(SqlDbType.BigInt)]

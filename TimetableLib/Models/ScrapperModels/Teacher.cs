@@ -9,9 +9,9 @@ namespace TimetableLib.Models.ScrapperModels
         public string Name { get; set; }
         public string ShortName { get; set; }
         public Timetable Timetable { get; set; }
-        public IDBModel GetDBModel()
+        public T GetDBModel<T>() where T : class, IDBModel
         {
-            return new TeacherDB(this);
+            return new TeacherDB(this) as T;
         }
     }
 }

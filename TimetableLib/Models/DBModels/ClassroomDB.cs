@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using TimetableLib.Models.DBModels.DBAttributes;
 using TimetableLib.Models.DTOs;
 using TimetableLib.Models.ScrapperModels;
 
@@ -16,6 +17,7 @@ namespace TimetableLib.Models.DBModels
             Timetable = new TimetableDB(cr.Timetable);
         }
 
+        [Identity]
         [SqlType(SqlDbType.BigInt)]
         public long? Id { get; set; }
 

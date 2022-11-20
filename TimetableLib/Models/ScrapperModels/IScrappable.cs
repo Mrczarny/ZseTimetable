@@ -11,6 +11,7 @@ namespace TimetableLib.Models.ScrapperModels
     {
         string Name { get; set; }
         Timetable Timetable { get; set; }
-        public IDBModel GetDBModel();
+        public T GetDBModel<T>() where T: class, IDBModel;
+
     }
 }

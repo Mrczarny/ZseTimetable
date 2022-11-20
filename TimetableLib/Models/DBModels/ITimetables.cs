@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using TimetableLib.Models.DBModels.DBAttributes;
 
 namespace TimetableLib.Models.DBModels
 {
-    public interface ITimetables
+    public interface ITimetables : IDBModel
     {
         public long? Id { get; set; }
 

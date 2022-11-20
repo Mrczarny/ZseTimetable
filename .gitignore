@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/docker-compose.override.yml
+/docker-compose.dcproj
+/docker-compose.yml
+/mockapi.crt
+/MockApi.pfx
+/ca-certificates.conf
+/.dockerignore
+/ZseTimetable/Dockerfile
+/MockApi/Dockerfile
+/ZseTimetable/appsettings.json

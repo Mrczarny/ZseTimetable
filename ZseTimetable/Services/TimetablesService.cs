@@ -76,16 +76,30 @@ namespace ZseTimetable.Services
                     if (record != null)
                     {
                         record.Timetable = _db.Get<TimetableDB>(record.TimetableId);
-                        record.Timetable.Days = 
-                        _db.Update(record.TimetableId, dbModel.Timetable);
-                        _db.Update((long)record.Id, dbModel);
+                        record.Timetable.Days =
+                            _db.GetAll<TimetableDayDB>().Where(x => x.TimetableId == record.Timetable.Id);
                         foreach (var day in record.Timetable.Days)
                         {
-                            var dbDay = dbModel.Timetable.Days.Single(x => x.Day == day.Day);
-                            _db.Update((long)day.Id, dbDay);
-                            foreach (var lesson in dbDay.Lessons)
-                                _db.Update((long)lesson.Id, );
+                            day.Lessons = from dayLessonDb in _db.GetAll<TimetableDayLessonDB>()
+                                join lessonDb in _db.GetAll<LessonDB>() on dayLessonDb.LessonId equals lessonDb.Id //TODO - ! THIS QUERIES TWO ENTIRE TABLES ! 
+                                select lessonDb;
+                        }
+                        _db.Update(record.TimetableId, dbModel.Timetable);
+                        _db.Update((long)record.Id, dbModel);
+                        foreach (var DbDay in dbModel.Timetable.Days)
+                        {
+                            var day = record.Timetable.Days.Single(x => x.Day == DbDay.Day);
+                            _db.Update((long)day.Id, DbDay);
+                            foreach (var DbLesson in DbDay.Lessons)
                             {
+                                if (DbLesson.)
+                                {
+                                    if (lesson)
+                                    {
+                                    
+                                    }
+                                }
+                                _db.Update((long)lesson.Id, lesson);
                             }
                         }
                     }

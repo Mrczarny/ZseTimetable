@@ -65,7 +65,7 @@ namespace ZseTimetable.Services
         }
 
 
-        private async void DatabaseUpload<T>(IAsyncEnumerable<T> dbModels) where T : ITimetables, new()
+        private async void DatabaseUpload<T>(IAsyncEnumerable<T> dbModels) where T : class,ITimetables, new()
         {
             await foreach (var dbModel in dbModels)
             {
@@ -75,31 +75,47 @@ namespace ZseTimetable.Services
 
                     if (record != null)
                     {
-                        record.Timetable = _db.Get<TimetableDB>(record.TimetableId);
-                        record.Timetable.Days =
-                            _db.GetAll<TimetableDayDB>().Where(x => x.TimetableId == record.Timetable.Id);
-                        foreach (var day in record.Timetable.Days)
-                        {
-                            day.Lessons = from dayLessonDb in _db.GetAll<TimetableDayLessonDB>()
-                                join lessonDb in _db.GetAll<LessonDB>() on dayLessonDb.LessonId equals lessonDb.Id //TODO - ! THIS QUERIES TWO ENTIRE TABLES ! 
-                                select lessonDb;
-                        }
-                        _db.Update(record.TimetableId, dbModel.Timetable);
+                        FillDbModel(record);
+                        dbModel.TimetableId = record.TimetableId;
                         _db.Update((long)record.Id, dbModel);
+                        _db.Update(record.TimetableId, dbModel.Timetable);
                         foreach (var DbDay in dbModel.Timetable.Days)
                         {
                             var day = record.Timetable.Days.Single(x => x.Day == DbDay.Day);
+                            DbDay.TimetableId = record.TimetableId;
+                            DbDay.Id = day.Id;
                             _db.Update((long)day.Id, DbDay);
                             foreach (var DbLesson in DbDay.Lessons)
                             {
-                                if (DbLesson.)
+                                var matchingLesson = day.Lessons?.FirstOrDefault(x => x.Number == DbLesson.Number
+                                                                 && x.Name == DbLesson.Name && x.Group == DbLesson.Group);
+                                if (matchingLesson != null)
                                 {
-                                    if (lesson)
-                                    {
-                                    
-                                    }
+                                    _db.Update((long)matchingLesson.Id, DbLesson);
+                                    day.Lessons.Remove(matchingLesson); // TODO - Becouse of this one line TimetableDay.Lessons has to be list
                                 }
-                                _db.Update((long)lesson.Id, lesson);
+                                else
+                                    {
+                                    DbLesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
+                                        .SetValue(DbLesson, dbModel.Name);
+                                    DbLesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
+                                        .SetValue(DbLesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
+                                    CreateLesson(DbLesson, DbDay);
+                                }
+                                    
+                                 
+                                    }
+
+                            if (day.Lessons != null)
+                                foreach (var lesson in day.Lessons)
+                                {
+                                    foreach (var dayLesson in _db.GetAll<TimetableDayLessonDB>()
+                                                 .Where(x => x.LessonId == lesson.Id))
+                                    {
+                                        _db.Delete<TimetableDayLessonDB>((long) dayLesson.Id);
+                                }
+
+                                    _db.Delete<LessonDB>((long) lesson.Id);
                             }
                         }
                     }
@@ -113,14 +129,12 @@ namespace ZseTimetable.Services
                             day.Id = _db.Create(day);
                             foreach (var lesson in day.Lessons)
                             {
-                                lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id").SetValue(lesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
-                                var lessonDay = new TimetableDayLessonDB
-                                {
-                                    LessonId = _db.Create(lesson),
-                                    TimetableDayId = (long)day.Id
-                                };
-                                _db.Create(lessonDay);
+                                lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
+                                    .SetValue(lesson, dbModel.Name);
+                                lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
+                                    .SetValue(lesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
 
+                                CreateLesson(lesson, day);
                             }
                         }
                     }
@@ -133,6 +147,8 @@ namespace ZseTimetable.Services
                 }
             }
             
+        }
+
         private void FillDbModel<T>(T record) where T : class, ITimetables, new()
         {
             record.Timetable = _db.Get<TimetableDB>(record.TimetableId);

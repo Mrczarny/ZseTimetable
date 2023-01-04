@@ -4,13 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using TimetableLib.DataAccess;
+using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.ScrapperModels;
+using Azure;
 
 namespace ZseTimetable.Services
 {
@@ -19,12 +23,12 @@ namespace ZseTimetable.Services
         private int executionCount = 0;
         private readonly ILogger<TimetablesService> _logger;
         private Timer _timer;
-        private DataAccess _db;
+        private TimetablesAccess _db;
         private TimetableScrapper _scrapper;
         private IEnumerable<TimetableServiceOption> TimetablesTypes;
         private readonly string baseAddress = "https://plan.zse.bydgoszcz.pl/plany";
 
-        public TimetablesService(ILogger<TimetablesService> logger, IConfiguration config, DataAccess db)
+        public TimetablesService(ILogger<TimetablesService> logger, IConfiguration config, TimetablesAccess db)
         {
             _logger = logger;
             _scrapper = new TimetableScrapper(config.GetSection(ScrapperOption.Position)
@@ -318,14 +322,8 @@ namespace ZseTimetable.Services
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    try
-                    {
                         var head = new HttpRequestMessage(HttpMethod.Head,
                             $"{baseAddress}/{letter}{id}.html")
-                            {Headers = { IfModifiedSince = DateTime.Now.Subtract(TimeSpan.FromDays(365)).ToUniversalTime()
-                            }};
-                        var response = await client.SendAsync(head);
-                        if (!response.IsSuccessStatusCode)
                         {
                         Headers = { IfModifiedSince = DateTime.Now.Subtract(TimeSpan.FromDays(365)).ToUniversalTime()
                     }

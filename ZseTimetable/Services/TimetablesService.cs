@@ -68,7 +68,7 @@ namespace ZseTimetable.Services
             DatabaseUpload(DbTeacher);
         }
 
-
+        
         private async void DatabaseUpload<T>(IAsyncEnumerable<T> dbModels) where T : class,ITimetables, new()
         {
             await foreach (var dbModel in dbModels)
@@ -99,16 +99,16 @@ namespace ZseTimetable.Services
                                     day.Lessons.Remove(matchingLesson); // TODO - Becouse of this one line TimetableDay.Lessons has to be list
                                 }
                                 else
-                                    {
+                                {
                                     DbLesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
                                         .SetValue(DbLesson, dbModel.Name);
                                     DbLesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
                                         .SetValue(DbLesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
                                     CreateLesson(DbLesson, DbDay);
                                 }
-                                    
+
                                  
-                                    }
+                            }
 
                             if (day.Lessons != null)
                                 foreach (var lesson in day.Lessons)
@@ -117,10 +117,10 @@ namespace ZseTimetable.Services
                                                  .Where(x => x.LessonId == lesson.Id))
                                     {
                                         _db.Delete<TimetableDayLessonDB>((long) dayLesson.Id);
-                                }
+                                    }
 
                                     _db.Delete<LessonDB>((long) lesson.Id);
-                            }
+                                }
                         }
                     }
                     else
@@ -322,11 +322,11 @@ namespace ZseTimetable.Services
             {
                 using (HttpClient client = new HttpClient())
                 {
-                        var head = new HttpRequestMessage(HttpMethod.Head,
-                            $"{baseAddress}/{letter}{id}.html")
-                        {
+                    var head = new HttpRequestMessage(HttpMethod.Head,
+                        $"{baseAddress}/{letter}{id}.html")
+                    {
                         Headers = { IfModifiedSince = DateTime.Now.Subtract(TimeSpan.FromDays(365)).ToUniversalTime()
-                    }
+                            }
                     };
 
                     HttpResponseMessage response;
@@ -339,8 +339,8 @@ namespace ZseTimetable.Services
                     }
                     if (response.IsSuccessStatusCode)
                     {
-                    yield return $"{baseAddress}/{letter}{id}.html"; 
-                }
+                        yield return $"{baseAddress}/{letter}{id}.html";
+                    }
 
                 }
                 id++;

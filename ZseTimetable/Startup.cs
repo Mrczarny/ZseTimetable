@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TimetableLib.DataAccess;
+using TimetableLib.DBAccess;
 using ZseTimetable.Services;
 
 namespace ZseTimetable
@@ -24,7 +25,7 @@ namespace ZseTimetable
             services.AddControllers();
             services.AddHttpClient();
             services.AddHostedService<TimetablesService>();
-            services.AddSingleton<DataAccess,DatabaseService>();
+            services.AddSingleton<TimetablesAccess,DatabaseService>();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 

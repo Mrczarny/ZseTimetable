@@ -8,7 +8,7 @@ namespace TimetableLib.Models.DTOs
         {
             Id = (long) ls.Id;
             Name = ls.Name;
-            LessonNumber = ls.LessonNumber;
+            LessonNumber = ls.Number;
             Group = ls.Group;
             ClassId = ls.ClassId;
             TeacherId = ls.TeacherId;

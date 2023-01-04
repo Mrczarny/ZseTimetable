@@ -10,12 +10,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Data.SqlClient;
 using TimetableLib.DataAccess;
+using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.DBModels.DBAttributes;
 
 namespace ZseTimetable.Services
 {
-    public class DatabaseService :  DataAccess,IHostedService,IDisposable
+    public class DatabaseService :  TimetablesAccess,IHostedService,IDisposable
     {
         private readonly ILogger<DatabaseService> _logger;
         private readonly string _connectionString;
@@ -61,7 +62,7 @@ namespace ZseTimetable.Services
                 };
 
                 command.Parameters.Add(parameter);
-        }
+            }
             command.Parameters.Add(new SqlParameter
             {
                 ParameterName = "@Id",
@@ -87,7 +88,9 @@ namespace ZseTimetable.Services
             };
 
 
-            foreach (var property in record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute) && x.AttributeType != typeof(IdentityAttribute))))
+            foreach (var property in record.GetType().GetProperties().
+                         Where(x => x.CustomAttributes.Any(y => y.AttributeType == typeof(SqlTypeAttribute)) &&
+                                            x.CustomAttributes.All(y => y.AttributeType != typeof(IdentityAttribute))))
             {
                 var parameter = new SqlParameter
                 {
@@ -113,35 +116,55 @@ namespace ZseTimetable.Services
         public override void Delete<T>(long id)
         {
 
-            var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_Delete");
+            var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_Delete")
+            {
+                CommandType = CommandType.StoredProcedure
+            };
             command.Parameters.Add(new SqlParameter("@Id", id));
+           
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 command.Connection = connection;
                 connection.Open();
-                command.ExecuteNonQuery();
+                var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
             }
+
         }
 
         public override T Get<T>(long id) 
         {
-            SqlDataReader record;
-            var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetById");
+            var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetById")
+            {
+                CommandType = CommandType.StoredProcedure
+            };
             command.Parameters.Add(new SqlParameter("@Id", id));
+            T record = new T();
+            var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                
+                command.Connection = connection;
                 connection.Open();
-                record = command.ExecuteReader();
+                var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                if (sqlData.HasRows)
+                {
+                    while (sqlData.Read())
+                    {
+                        foreach (var property in properties)
+                        {
+                            var value = sqlData.GetValue(property.Name);
+                            property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                        }
+                    }
+                }
+                else
+                {
+                    return null;
+                }
             }
 
-            T result = new T();
-            foreach (var property in typeof(T).GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute))))
-            {
-                property.SetValue(result, record.GetValue($"{property.Name}"));
-            }
-
-            return result;
+            return record;
         }
 
         public override T Get<T>()
@@ -182,14 +205,14 @@ namespace ZseTimetable.Services
                 var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
                 if (sqlData.HasRows)
                 {
-                while (sqlData.Read())
-                {
-                    foreach (var property in properties)
+                    while (sqlData.Read())
                     {
+                        foreach (var property in properties)
+                        {
                             var value = sqlData.GetValue(property.Name);
                             property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                        }
                     }
-                }
                 }
                 else
                 {
@@ -198,7 +221,7 @@ namespace ZseTimetable.Services
             }
 
             return record;
-            }
+        }
 
         public override T GetByLink<T>(string name) where T : class
         {
@@ -238,25 +261,41 @@ namespace ZseTimetable.Services
 
         public override IEnumerable<T> GetAll<T>()
         {
-            SqlDataReader record;
+            var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetAll")
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            T record = new T();
+            List<T> records = new List<T>();
+            var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                var command = new SqlCommand($"dbo.{typeof(T).Name[..^2]}_GetAll", connection);
+                command.Connection = connection;
                 connection.Open();
-                record = command.ExecuteReader();
-            }
-            List<T> results = new List<T>();
-            while (record.Read())
-            {
-                T result = new T();
-                foreach (var property in typeof(T).GetProperties().Where(x => x.CustomAttributes.OfType<SqlDbType>() != null))
+                var sqlData = command.ExecuteReader();
+                if (sqlData.HasRows)
                 {
-                    property.SetValue(result, record.GetValue($"{property.Name}"));
+                    while (sqlData.Read())
+                    {
+                        record = new T();
+                        foreach (var property in properties)
+                        {
+                            var value = sqlData.GetValue(property.Name);
+                            property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                        }
+                        records.Add(record);
+                    }
                 }
-
-                results.Add(result);
+                else
+                {
+                    return null;
+                }
             }
-            return results;
+
+            return records;
         }
     }
 }

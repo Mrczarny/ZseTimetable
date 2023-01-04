@@ -152,6 +152,110 @@ namespace ZseTimetable.Services
             }
         }
 
+        private void CreateLesson(LessonDB lesson, TimetableDayDB day) // TODO - DRY :)
+        {
+            //var matchingDbModel = _db.GetByName<T>(lesson.ClassName);
+            //if (matchingDbModel != null)
+            //{
+            //    FillDbModel(matchingDbModel);
+            //    var matchingLesson = matchingDbModel.Timetable.Days
+            //        .FirstOrDefault(x => x.Day == day.Day)?.Lessons
+            //        .FirstOrDefault(x => x.Number == lesson.Number
+            //                             && x.Name == lesson.Name && x.Group == lesson.Group);
+            //    if (matchingLesson != null)
+            //    {
+            //        _db.Create(new TimetableDayLessonDB
+            //        {
+            //            LessonId = (long)matchingLesson.Id,
+            //            TimetableDayId = (long)day.Id
+            //        });
+            //        return;
+            //    }
+            //}
+
+            if (lesson.ClassName != null && lesson.ClassLink != null)
+            {
+                var matchingClass = _db.GetByName<ClassDB>(lesson.ClassName) ?? _db.GetByLink<ClassDB>(lesson.ClassLink) ;
+                if (matchingClass != null)
+                {
+                    FillDbModel(matchingClass);
+                    var matchingLesson = matchingClass.Timetable.Days?
+                        .FirstOrDefault(x => x.Day == day.Day)?.Lessons?
+                        .FirstOrDefault(x => x.Number == lesson.Number
+                                             && x.Name == lesson.Name && x.Group == lesson.Group);
+                    if (matchingLesson != null)
+                    {
+                        matchingLesson.ClassroomId ??= lesson.ClassroomId;
+                        matchingLesson.TeacherId ??= lesson.TeacherId;
+                        _db.Update((long)matchingLesson.Id, matchingLesson);
+                        _db.Create(new TimetableDayLessonDB
+                        {
+                            LessonId = (long)matchingLesson.Id,
+                            TimetableDayId = (long)day.Id
+                        });
+                        return;
+                    }
+                }
+            }
+
+            if (lesson.ClassroomName != null && lesson.ClassroomLink != null)
+            {
+                var matchingClassroom = _db.GetByName<ClassroomDB>(lesson.ClassroomName) ?? _db.GetByLink<ClassroomDB>(lesson.ClassroomLink);
+                if (matchingClassroom != null)
+                {
+                    FillDbModel(matchingClassroom);
+                    var matchingLesson = matchingClassroom.Timetable.Days?
+                        .FirstOrDefault(x => x.Day == day.Day)?.Lessons?
+                        .FirstOrDefault(x => x.Number == lesson.Number
+                                             && x.Name == lesson.Name && x.Group == lesson.Group);
+                    if (matchingLesson != null)
+                    {
+                        matchingLesson.ClassId ??= lesson.ClassId;
+                        matchingLesson.TeacherId ??= lesson.TeacherId;
+                        _db.Update((long)matchingLesson.Id, lesson);
+                        _db.Create(new TimetableDayLessonDB
+                        {
+                            LessonId = (long)matchingLesson.Id,
+                            TimetableDayId = (long)day.Id
+                        });
+                        return;
+                    }
+                }
+            }
+
+            if (lesson.TeacherName != null && lesson.TeachereLink != null)
+            {
+                var matchingTeacher = _db.GetByName<TeacherDB>(lesson.TeacherName) ?? _db.GetByLink<TeacherDB>(lesson.TeachereLink);
+                if (matchingTeacher != null)
+                {
+                    FillDbModel(matchingTeacher);
+                    var matchingLesson = matchingTeacher.Timetable.Days?
+                        .FirstOrDefault(x => x.Day == day.Day)?.Lessons
+                        .FirstOrDefault(x => x.Number == lesson.Number
+                                             && x.Name == lesson.Name && x.Group == lesson.Group);
+                    if (matchingLesson != null)
+                    {
+                        matchingLesson.ClassId ??= lesson.ClassId;
+                        matchingLesson.ClassroomId ??= lesson.ClassroomId;
+                        _db.Update((long)matchingLesson.Id, lesson);
+                        _db.Create(new TimetableDayLessonDB
+                        {
+                            LessonId = (long)matchingLesson.Id,
+                            TimetableDayId = (long)day.Id
+                        });
+                        return;
+                    }
+                }
+            }
+
+            var dayLesson = new TimetableDayLessonDB
+            {
+                LessonId = _db.Create(lesson),
+                TimetableDayId = (long)day.Id
+            };
+            _db.Create(dayLesson);
+        }
+
         private async IAsyncEnumerable<T> GetDBModels<T>(IEnumerable<IScrappable> scrpModels) where T : class, IDBModel
         {
             foreach (var scrpModel in scrpModels)

@@ -42,7 +42,39 @@ namespace ZseTimetable.Services
 
         public override void Update<T>(long id, T record)
         {
-            throw new NotImplementedException();
+            var command =
+                new SqlCommand($"dbo.sp{record.GetType().Name[..^2]}_Update")
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+
+            foreach (var property in record.GetType().GetProperties().
+                         Where(x => x.CustomAttributes.Any(y => y.AttributeType == typeof(SqlTypeAttribute)) &&
+                                    x.CustomAttributes.All(y => y.AttributeType != typeof(IdentityAttribute))))
+            {
+                var parameter = new SqlParameter
+                {
+                    ParameterName = $"@{property.Name}",
+                    Value = property.GetValue(record),
+                    SqlDbType = property.GetCustomAttribute<SqlTypeAttribute>().type
+                };
+
+                command.Parameters.Add(parameter);
+        }
+            command.Parameters.Add(new SqlParameter
+            {
+                ParameterName = "@Id",
+                Value = id,
+                SqlDbType = SqlDbType.BigInt
+            });
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                command.Connection = connection;
+                connection.Open();
+                var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
+            }
         }
 
         public override long Create<T>(T record)

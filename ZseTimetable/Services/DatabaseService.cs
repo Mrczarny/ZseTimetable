@@ -180,13 +180,24 @@ namespace ZseTimetable.Services
                 command.Connection = connection;
                 connection.Open();
                 var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                if (sqlData.HasRows)
+                {
                 while (sqlData.Read())
                 {
                     foreach (var property in properties)
                     {
-                        property.SetValue(record, sqlData.GetValue($"{property.Name}"));
+                            var value = sqlData.GetValue(property.Name);
+                            property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                     }
                 }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            return record;
             }
 
         public override T GetByLink<T>(string name) where T : class

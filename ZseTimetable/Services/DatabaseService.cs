@@ -188,7 +188,38 @@ namespace ZseTimetable.Services
                 }
             }
 
+        public override T GetByLink<T>(string name) where T : class
+        {
+            var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetByLink")
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            command.Parameters.Add(new SqlParameter("@Link", name));
 
+            T record = new T();
+            var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                command.Connection = connection;
+                connection.Open();
+                var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                if (sqlData.HasRows)
+                {
+                    while (sqlData.Read())
+                    {
+                        foreach (var property in properties)
+                        {
+                            property.SetValue(record, sqlData.GetValue($"{property.Name}"));
+                        }
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
 
             return record;
         }

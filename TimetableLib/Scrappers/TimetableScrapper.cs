@@ -40,7 +40,9 @@ namespace ZseTimetable
                     TeacherLink = match.Groups["teacherLink"].Value,
                     ClassroomName = match.Groups["classroomName"].Value,
                     ClassroomLink = match.Groups["classroomLink"].Value,
-                    Group = match.Groups["GroupName"].Value
+                    ClassName = match.Groups["className"].Value,
+                    ClassLink = match.Groups["classLink"].Value,
+                    Group = match.Groups["groupName"].Value
                 };
                 yield return Lesson;
             }

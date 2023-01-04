@@ -133,6 +133,23 @@ namespace ZseTimetable.Services
                 }
             }
             
+        private void FillDbModel<T>(T record) where T : class, ITimetables, new()
+        {
+            record.Timetable = _db.Get<TimetableDB>(record.TimetableId);
+            record.Timetable.Days =
+                _db.GetAll<TimetableDayDB>()?.Where(x => x.TimetableId == record.Timetable.Id);
+            foreach (var day in record.Timetable.Days)
+            {
+                var dayLessons = _db.GetAll<TimetableDayLessonDB>()?.Where(x => x.TimetableDayId == day.Id);
+                var Lessons = _db.GetAll<LessonDB>();
+                if (dayLessons != null && Lessons != null)
+                {
+                    day.Lessons = (from dayLessonDb in dayLessons
+                                   join lessonDb in Lessons on dayLessonDb.LessonId equals
+                                       lessonDb.Id //TODO - ! THIS QUERIES TWO ENTIRE TABLES ! 
+                                   select lessonDb ).ToList(); 
+                }
+            }
         }
 
         private async IAsyncEnumerable<T> GetDBModels<T>(IEnumerable<IScrappable> scrpModels) where T : class, IDBModel

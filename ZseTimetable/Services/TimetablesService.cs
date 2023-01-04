@@ -311,14 +311,23 @@ namespace ZseTimetable.Services
                         var response = await client.SendAsync(head);
                         if (!response.IsSuccessStatusCode)
                         {
-                            break;
-                        }
+                        Headers = { IfModifiedSince = DateTime.Now.Subtract(TimeSpan.FromDays(365)).ToUniversalTime()
                     }
-                    catch (HttpRequestException e)
+                    };
+
+                    HttpResponseMessage response;
+                    try { response = await client.SendAsync(head); }
+                    catch (HttpRequestException e) { break; }
+
+                    if (response.StatusCode == HttpStatusCode.NotFound)
                     {
                         break;
                     }
+                    if (response.IsSuccessStatusCode)
+                    {
                     yield return $"{baseAddress}/{letter}{id}.html"; 
+                }
+
                 }
                 id++;
             }

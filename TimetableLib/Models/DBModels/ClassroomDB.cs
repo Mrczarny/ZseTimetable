@@ -29,6 +29,8 @@ namespace TimetableLib.Models.DBModels
 
         [SqlType(SqlDbType.BigInt)]
         public long TimetableId { get; set; }
+
+        public string Link { get; set; }
         public TimetableDB Timetable { get; set; }
 
         [SqlType(SqlDbType.NVarChar)]

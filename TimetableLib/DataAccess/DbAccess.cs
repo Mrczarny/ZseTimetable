@@ -5,10 +5,10 @@ using TimetableLib.Models.DBModels;
 
 namespace TimetableLib.DataAccess
 {
-    public abstract class DataAccess
+    public abstract class DbAccess
     {
 
-        protected DataAccess()
+        protected DbAccess()
         {
         }
 
@@ -22,16 +22,14 @@ namespace TimetableLib.DataAccess
         public abstract void Delete<T>(long id) where T: IDBModel;
 
         // Get by id
-        public abstract T Get<T>(long id) where T : IDBModel, new();
+        public abstract T? Get<T>(long id) where T : class,IDBModel, new();
 
         // Get latest
-        public abstract T Get<T>() where T : IDBModel, new();
+        public abstract T? Get<T>() where T : class, IDBModel, new();
 
-        //Get by Name
-        public abstract T GetByName<T>(string name) where T : IDBModel, new();
 
         // Gets all records 
-        public abstract IEnumerable<T> GetAll<T>() where T : IDBModel, new();
+        public abstract IEnumerable<T>? GetAll<T>() where T : class, IDBModel, new();
 
     }
 }

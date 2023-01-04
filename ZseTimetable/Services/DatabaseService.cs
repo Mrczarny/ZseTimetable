@@ -156,7 +156,8 @@ namespace ZseTimetable.Services
             T result = new T();
             foreach (var property in typeof(T).GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute))))
             {
-                property.SetValue(result, record.GetValue($"{property.Name}"));
+                var value = record.GetValue(property.Name);
+                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
             }
 
             return result;

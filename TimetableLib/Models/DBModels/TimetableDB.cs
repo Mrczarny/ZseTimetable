@@ -22,7 +22,7 @@ namespace TimetableLib.Models.DBModels
         [Identity]
         [SqlType(SqlDbType.BigInt)]
         public long? Id { get; set; }
-        public IEnumerable<TimetableDayDB> Days { get; set; }
+        public IEnumerable<TimetableDayDB>? Days { get; set; }
         [SqlType(SqlDbType.Date)]
         public DateTime StartDate { get; set; }
         [SqlType(SqlDbType.Date)]

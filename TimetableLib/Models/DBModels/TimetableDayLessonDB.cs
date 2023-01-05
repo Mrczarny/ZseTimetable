@@ -15,9 +15,9 @@ namespace TimetableLib.Models.DBModels
         public long? Id { get; set; }
 
         [SqlType(SqlDbType.BigInt)]
-        public long TimetableDayId { get; set; }
+        public long? TimetableDayId { get; set; }
 
         [SqlType(SqlDbType.BigInt)]
-        public long LessonId { get; set; }
+        public long? LessonId { get; set; }
     }
 }

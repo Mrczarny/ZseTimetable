@@ -15,7 +15,7 @@ namespace TimetableLib.Models.DBModels
         public TimetableDayDB(TimetableDay td)
         {
             Day = td.Day;
-            Lessons = td.Lessons.Select(x => new LessonDB(x));
+            Lessons = td.Lessons.Select(x => new LessonDB(x)).ToList();
         }
 
         [Identity]
@@ -23,7 +23,7 @@ namespace TimetableLib.Models.DBModels
         public long? Id { get; set; }
         [SqlType(SqlDbType.BigInt)]
         public long TimetableId { get; set; }
-        public IEnumerable<LessonDB> Lessons { get; set; }
+        public List<LessonDB>? Lessons { get; set; }
         [SqlType(SqlDbType.SmallInt)]
         public DayOfWeek Day { get; set; }
     }

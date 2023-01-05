@@ -11,7 +11,7 @@ namespace TimetableLib.DataAccess
     public abstract class DataAccess
     {
 
-        protected DataAccess()
+        protected DbAccess()
         {
         }
 

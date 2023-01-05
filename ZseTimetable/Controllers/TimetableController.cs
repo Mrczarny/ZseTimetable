@@ -30,10 +30,10 @@ namespace ZseTimetable.Controllers
     {
         private readonly ILogger<TimetableController> _logger;
         private readonly HttpClient _client;
-        private DataAccess _db;
+        private DbAccess _db;
         //private readonly TimetableScrapper _scrapper;
 
-        public TimetableController(IConfiguration config, ILogger<TimetableController> logger, DataAccess db, HttpClient client)
+        public TimetableController(IConfiguration config, ILogger<TimetableController> logger, DbAccess db, HttpClient client)
         {
             _logger = logger;
             _client = client;

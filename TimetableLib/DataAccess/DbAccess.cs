@@ -8,7 +8,7 @@ namespace TimetableLib.DataAccess
     /// <summary>
     /// Class responsible for handling connection and traffic to and from database 
     /// </summary>
-    public abstract class DataAccess
+    public abstract class DbAccess
     {
 
         protected DbAccess()
@@ -48,7 +48,7 @@ namespace TimetableLib.DataAccess
         /// <param name="id">DB Id of this record</param>
         /// <returns>If existing - returns record with matching Id,
         /// otherwise null</returns>
-        public abstract T Get<T>(long id) where T : IDBModel, new();
+        public abstract T? Get<T>(long id) where T : class, IDBModel, new();
 
         // Get latest
         /// <summary>
@@ -57,7 +57,7 @@ namespace TimetableLib.DataAccess
         /// <typeparam name="T">DB model of this record</typeparam>
         /// <returns>If existing - returns latest record,
         /// otherwise null</returns>
-        public abstract T Get<T>() where T : IDBModel, new();
+        public abstract T? Get<T>() where T : class, IDBModel, new();
 
         //Get by Name
         /// <summary>
@@ -67,7 +67,7 @@ namespace TimetableLib.DataAccess
         /// <param name="name">Field "Name" of this record</param>
         /// <returns>If existing - returns record with matching "Name",
         /// otherwise null</returns>
-        public abstract T GetByName<T>(string name) where T : IDBModel, new();
+        public abstract T? GetByName<T>(string name) where T : class, IDBModel, new();
 
         // Gets all records 
         /// <summary>

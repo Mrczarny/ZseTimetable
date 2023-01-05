@@ -6,6 +6,10 @@ using TimetableLib.Models.DBModels.DBAttributes;
 
 namespace TimetableLib.Models.DBModels
 {
+    /// <summary>
+    /// Models of objects that contain timetable within themselves,
+    /// such as Classes, Classrooms or Teachers 
+    /// </summary>
     public interface ITimetables : IDBModel
     {
         public long? Id { get; set; }

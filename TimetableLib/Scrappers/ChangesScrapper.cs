@@ -13,9 +13,21 @@ using TimetableLib.Models.ScrapperModels;
 
 namespace ZseTimetable
 {
+    /// <summary>
+    /// Class <c>ChangesScrapper</c> is responsible for scrapping data about timetable's changes from plain html file
+    /// </summary>
     public class ChangesScrapper
     {
+        /// <summary>
+        /// This dictionary contains names of methods and theirs regexs
+        /// </summary>
         private readonly IReadOnlyDictionary<string, Regex> _dic;
+
+        /// <summary>
+        /// <c>ChangesScrapper</c> constructor with enumerable of its options
+        /// </summary>
+        /// <param name="options">Options for this scrapper such as regexs and theirs options,
+        /// position of those in <c>appsettings.json</c> </param>
         public ChangesScrapper(IEnumerable<ScrapperOption> options)
         {
             _dic = options.ToDictionary(x => x.Name, x => new Regex(

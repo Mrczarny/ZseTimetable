@@ -11,9 +11,18 @@ using TimetableLib.Timetables;
 
 namespace ZseTimetable
 {
+    /// <summary>
+    /// Class <c>TimetableScrapper</c> is responsible for scrapping data about one timetable from plain html file
+    /// </summary>
     public class TimetableScrapper
     {
         private readonly IReadOnlyDictionary<string,Regex> _dic;
+
+        /// <summary>
+        /// <c>TimetableScrapper</c> constructor with enumerable of its options
+        /// </summary>
+        /// <param name="options">Options for this scrapper such as regexs and theirs options,
+        /// position of those in <c>appsettings.json</c> </param>
         public TimetableScrapper(IEnumerable<ScrapperOption> options)
         {
             _dic = options.ToDictionary(x => x.Name, x => new Regex(
@@ -21,7 +30,6 @@ namespace ZseTimetable
                 (RegexOptions)x.RegexOptions
             ));
         }
-
 
         private IEnumerable<Lesson>? ScrapLesson<T>(string rawLesson, int lessonNumber)
         {

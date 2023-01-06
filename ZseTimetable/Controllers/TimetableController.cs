@@ -20,6 +20,10 @@ using TimetableLib.Timetables;
 
 namespace ZseTimetable.Controllers
 {
+    /// <summary>
+    /// TimetableController is responsible for handling all requests about timetable
+    /// Default kind of response format is json
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class TimetableController : ControllerBase

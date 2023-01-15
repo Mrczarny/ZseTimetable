@@ -14,9 +14,9 @@ namespace ZseTimetable
     /// <summary>
     /// Class <c>TimetableScrapper</c> is responsible for scrapping data about one timetable from plain html file
     /// </summary>
-    public class TimetableScrapper
+    public class TimetableScrapper : IAsyncDisposable
     {
-        private readonly IReadOnlyDictionary<string,Regex> _dic;
+        private  IDictionary<string,Regex> _dic;
 
         /// <summary>
         /// <c>TimetableScrapper</c> constructor with enumerable of its options
@@ -83,8 +83,35 @@ namespace ZseTimetable
                 tds = rawLessons.Split("</td>");
                 for (int i = 0; i < tds.Length - 1; i++)
                 {
-                    var lessons = ScrapLesson<T>(tds[i], lessonNumber);
-                    classDays[i].Lessons.AddRange(lessons);
+                    var d = tds[i].Split(',');
+                    if (d.Length > 1)
+                    {
+                        //TODO - Lessons can have more then one class 
+                        var t  = tds[i].Split(" <");
+                        if ((t[0].Length - 1) < d[0].Length)
+                        {
+                            d[0] = d[0].Substring(t[0].Length - 1);
+                            d[^1] = d[^1][..(d[^1].Length - t[^1].Length)];
+                            foreach (var s in d)
+                            {
+
+                                var lessons = ScrapLesson<T>(t[0] + s + t[^1], lessonNumber);
+                                classDays[i].Lessons.AddRange(lessons);
+                            }
+                        }
+                        else
+                        {
+                            
+                        }
+
+
+                    }
+                    else
+                    {
+                        var lessons = ScrapLesson<T>(tds[i], lessonNumber);
+                        classDays[i].Lessons.AddRange(lessons);
+                    }
+
                 }
             }
 
@@ -109,6 +136,24 @@ namespace ZseTimetable
                 Days = ScrapRawTable<T>(rawBodyMatch.Groups["Table"].Value)
             };
 
+        }
+
+        public void Dispose()
+        {
+            _dic = null;
+            
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore();
+
+        }
+
+        protected virtual ValueTask DisposeAsyncCore()
+        {
+            Dispose();
+            return default;
         }
     }
 }

@@ -16,12 +16,12 @@ namespace ZseTimetable
     /// <summary>
     /// Class <c>ChangesScrapper</c> is responsible for scrapping data about timetable's changes from plain html file
     /// </summary>
-    public class ChangesScrapper
+    public class ChangesScrapper : IAsyncDisposable
     {
         /// <summary>
         /// This dictionary contains names of methods and theirs regexs
         /// </summary>
-        private readonly IReadOnlyDictionary<string, Regex> _dic;
+        private  IReadOnlyDictionary<string, Regex> _dic;
 
         /// <summary>
         /// <c>ChangesScrapper</c> constructor with enumerable of its options
@@ -48,7 +48,7 @@ namespace ZseTimetable
             {
                 yield return new LessonReplacement()
                 {
-                    LessonNumber = replacementsMatch.Groups["lessonNumber"].Value,
+                    LessonNumber = byte.Parse(replacementsMatch.Groups["lessonNumber"].Value),
                     Description = replacementsMatch.Groups["Description"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Description"].Value,
                     Sub = replacementsMatch.Groups["Sub"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Sub"].Value,
                     Note = replacementsMatch.Groups["Note"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Note"].Value
@@ -82,12 +82,30 @@ namespace ZseTimetable
             var trMatch = _dic[nameof(Scrap)].Match(rawHtml);
             // new Regex(@"<nobr>(?<replacementHeader>.*?(?<replacementDate>\d{1,2}\.\d{1,2}\.\d{4}).*?)</nobr>.*?(?<replacements><tr>.*</tr>)", RegexOptions.Compiled | RegexOptions.Singleline)
 
-            return new DayReplacements()
+            var d = new DayReplacements()
             {
                 Date = DateTime.TryParse(trMatch.Groups["replacementDate"].Value, out DateTime date) ? date.Date : (DateTime?)null,
                 Replacements = ScrapTeacherReplacements(trMatch.Groups["replacements"].Value)
             };
+            return d;
+        }
 
+        public void Dispose()
+        {
+            _dic = null;
+
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore();
+
+        }
+
+        protected virtual ValueTask DisposeAsyncCore()
+        {
+            Dispose();
+            return default;
         }
     }
 }

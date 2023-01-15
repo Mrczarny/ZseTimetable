@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TimetableLib;
 using TimetableLib.DataAccess;
+using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.DTOs;
 using TimetableLib.Timetables;
@@ -30,15 +31,14 @@ namespace ZseTimetable.Controllers
     {
         private readonly ILogger<TimetableController> _logger;
         private readonly HttpClient _client;
-        private DbAccess _db;
+        readonly private TimetablesAccess _db;
         //private readonly TimetableScrapper _scrapper;
 
-        public TimetableController(IConfiguration config, ILogger<TimetableController> logger, DbAccess db, HttpClient client)
+        public TimetableController(IConfiguration config, ILogger<TimetableController> logger, IDataWrapper db, IHttpClientFactory client)
         {
             _logger = logger;
-            _client = client;
-            _db = db;
-            _client = client;
+            _client = client.CreateClient();
+            _db = db.TimetablesAccess;
             //_scrapper = new TimetableScrapper(config.GetSection(ScrapperOption.Position)
             //    .GetSection("Timetable")
             //    .GetChildren().Select(x => x.Get<ScrapperOption>())
@@ -46,21 +46,27 @@ namespace ZseTimetable.Controllers
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("class/{id:long}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(int id = 1)
+        public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(long id = 1)
         {
             try
             {
                 //Get latest populated(!) class from db
                 var classLs = _db.Get<ClassDB>(id);
+                if (classLs != null)
+                {
+                    _db.FillITimetablesModel(classLs);
+                    //returns DTO of timetable
+                    return new ClassDTO(classLs);
+                }
+                
+
                 
                 //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
 
 
-
-                //returns DTO of timetable
-                return new ClassDTO(classLs);
+                return NotFound("Class not found");
             }
             catch (HttpRequestException exception)
             {
@@ -68,20 +74,154 @@ namespace ZseTimetable.Controllers
             }
         }
 
-        [HttpGet]
+
+        [HttpGet("class/{name}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<IEnumerable<ClassDTO>>> GetAllClassTimetableAsync()
+        public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(string name  = "1B")
         {
             try
             {
-                //returns DTOs of timetable
-                return _db.GetAll<ClassDB>().Select(x => new ClassDTO(x)).ToList(); // this cast is stupid but necessary 
+                //Get latest populated(!) class from db
+                var classLs = _db.GetByName<ClassDB>(name);
+                if (classLs != null)
+                {
+                    _db.FillITimetablesModel(classLs);
+                    
+                    foreach (var day in classLs.Timetable.Days)
+                    {
+                        foreach ( var dayLesson in day.Lessons)
+                        {
+                            if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
+                            {
+                                var Classroom = _db.Get<ClassroomDB>((long) dayLesson.ClassroomId);
+                                _db.FillITimetablesModel(Classroom);
+                                var Teacher = _db.Get<TeacherDB>((long) dayLesson.TeacherId);
+                                _db.FillITimetablesModel(Teacher);
+                                dayLesson.ClassroomName =  Classroom.Name;
+                                dayLesson.TeacherName = Teacher.Name;
+                            }
+                        }
+                    }
+                    //returns DTO of timetable
+                    return new ClassDTO(classLs); ;
+                }
+
+
+                //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
+
+                return NotFound("Class not found");
             }
             catch (HttpRequestException exception)
             {
                 return Problem(exception.Message);
             }
         }
+
+        [HttpGet("classroom/{name}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<ClassroomDTO>> GetClassroomTimetableAsync(string name = "1")
+        {
+            try
+            {
+                //Get latest populated(!) classroom from db
+                var classroomLs = _db.GetByName<ClassroomDB>(name);
+                if (classroomLs != null)
+                {
+                    _db.FillITimetablesModel(classroomLs);
+
+                    foreach (var day in classroomLs.Timetable.Days)
+                    {
+                        foreach (var dayLesson in day.Lessons)
+                        {
+                            if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
+                            {
+                                var Class = _db.Get<ClassDB>((long)dayLesson.ClassId);
+                                _db.FillITimetablesModel(Class);
+                                var Teacher = _db.Get<TeacherDB>((long)dayLesson.TeacherId);
+                                _db.FillITimetablesModel(Teacher);
+                                dayLesson.ClassroomName = Class.Name;
+                                dayLesson.TeacherName = Teacher.Name;
+                            }
+                        }
+                    }
+                    //returns DTO of timetable
+                    return new ClassroomDTO(classroomLs); ;
+                }
+
+
+                //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
+
+                return NotFound("Classroom not found");
+            }
+            catch (HttpRequestException exception)
+            {
+                return Problem(exception.Message);
+            }
+        }
+
+        [HttpGet("teacher/{name}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<TeacherDTO>> GetTeacherTimetableAsync(string name = "P.Siwka")
+        {
+            try
+            {
+                //Get latest populated(!) classroom from db
+                var TeacherLs = _db.GetByName<TeacherDB>(name);
+                if (TeacherLs != null)
+                {
+                    _db.FillITimetablesModel(TeacherLs);
+
+                    foreach (var day in TeacherLs.Timetable.Days)
+                    {
+                        foreach (var dayLesson in day.Lessons)
+                        {
+                            if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
+                            {
+                                var Class = _db.Get<ClassDB>((long)dayLesson.ClassId);
+                                _db.FillITimetablesModel(Class);
+                                var Teacher = _db.Get<TeacherDB>((long)dayLesson.TeacherId);
+                                _db.FillITimetablesModel(Teacher);
+                                dayLesson.ClassroomName = Class.Name;
+                                dayLesson.TeacherName = Teacher.Name;
+                            }
+                        }
+                    }
+                    //returns DTO of timetable
+                    return new TeacherDTO(TeacherLs); ;
+                }
+
+
+                //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
+
+                return NotFound("Teacher not found");
+            }
+            catch (HttpRequestException exception)
+            {
+                return Problem(exception.Message);
+            }
+        }
+
+        //[HttpGet]
+        //[Produces(MediaTypeNames.Application.Json)]
+        //public async Task<ActionResult<IEnumerable<ClassDTO>>> GetAllClassTimetableAsync()
+        //{
+        //    try
+        //    {
+        //        var classesDb = _db.GetAll<ClassDB>();
+        //        foreach (var classDb in classesDb)
+        //        {
+        //            _db.FillITimetablesModel(classDb);
+        //        }
+        //        //returns DTOs of timetables
+        //        return classesDb.Select(x => new ClassDTO(x)).ToList(); // this conversion is stupid but necessary 
+        //    }
+        //    catch (HttpRequestException exception)
+        //    {
+        //        return Problem(exception.Message);
+        //    }
+        //}
+
+
 
 
     }

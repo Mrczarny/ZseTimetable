@@ -15,61 +15,69 @@ using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.ScrapperModels;
 using Azure;
+using TimetableLib.Timetables;
 
 namespace ZseTimetable.Services
 {
     public class TimetablesService : IHostedService, IDisposable
     {
-        private int executionCount = 0;
         private readonly ILogger<TimetablesService> _logger;
         private Timer _timer;
         private TimetablesAccess _db;
         private TimetableScrapper _scrapper;
         private IEnumerable<TimetableServiceOption> TimetablesTypes;
-        private readonly string baseAddress = "https://plan.zse.bydgoszcz.pl/plany";
+        private readonly string baseName = "plany";
+        private readonly IConfiguration _config;
+        private HttpClient _client;
 
-        public TimetablesService(ILogger<TimetablesService> logger, IConfiguration config, TimetablesAccess db)
+        public TimetablesService(ILogger<TimetablesService> logger, IConfiguration config, IDataWrapper db, IHttpClientFactory client)
         {
             _logger = logger;
-            _scrapper = new TimetableScrapper(config.GetSection(ScrapperOption.Position)
-                .GetSection("Timetable")
-                .GetChildren().Select(x => x.Get<ScrapperOption>())
-            );
-            _db = db;
+            //_scrapper = new TimetableScrapper(config.GetSection(ScrapperOption.Position)
+            //    .GetSection("Timetable")
+            //    .GetChildren().Select(x => x.Get<ScrapperOption>())
+            //);
+            _config = config;
+            _db = db.TimetablesAccess;
             TimetablesTypes = config.GetSection(ScrapperOption.Position).GetSection("Types").GetChildren()
                 .Select(x => x.Get<TimetableServiceOption>());
+            _client = client.CreateClient("baseHttp");
         }
         public Task StartAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Timed Timetable Service running.");
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero,
+            _timer =  new Timer(DoWork, null, TimeSpan.Zero,
                 TimeSpan.FromHours(24));
 
             return Task.CompletedTask;
         }
 
-        private async void DoWork(object state)
+        private async void DoWork(object? state)
         {
+            await using (_scrapper = new TimetableScrapper(_config.GetSection(ScrapperOption.Position)
+                       .GetSection("Timetable")
+                       .GetChildren().Select(x => x.Get<ScrapperOption>())))
+            {
+               await DatabaseUpload(
+                    _db.GetDBModels<ClassDB>(
+                        GetTimetable<Class>(
+                            TimetablesTypes.First(x => x.type == typeof(Class).Name).letter)));
 
-            IEnumerable<Class> classes = await GetTimetable<Class>(TimetablesTypes.First(x => x.type == typeof(Class).Name).letter);
-            IEnumerable<Classroom> classrooms = await GetTimetable<Classroom>(TimetablesTypes.First(x => x.type == typeof(Classroom).Name).letter);
-            IEnumerable<Teacher> teachers = await GetTimetable<Teacher>(TimetablesTypes.First(x => x.type == typeof(Teacher).Name).letter);
+                await DatabaseUpload(
+                    _db.GetDBModels<ClassroomDB>(
+                        GetTimetable<Classroom>(
+                            TimetablesTypes.First(x => x.type == typeof(Classroom).Name).letter)));
 
-
-            //scrapper models to db models
-            var DbClasses = GetDBModels<ClassDB>(classes);
-            var DbClassrooms = GetDBModels<ClassroomDB>(classrooms); //TODO - make DoWork better
-            var DbTeacher = GetDBModels<TeacherDB>(teachers);
-
-            //updates or creates record 
-            DatabaseUpload(DbClasses);
-            DatabaseUpload(DbClassrooms);
-            DatabaseUpload(DbTeacher);
+               await DatabaseUpload(
+                    _db.GetDBModels<TeacherDB>(
+                        GetTimetable<Teacher>(
+                            TimetablesTypes.First(x => x.type == typeof(Teacher).Name).letter)));
+            }
         }
 
         
-        private async void DatabaseUpload<T>(IAsyncEnumerable<T> dbModels) where T : class,ITimetables, new()
+        private async Task DatabaseUpload<T>(IAsyncEnumerable<T> dbModels) where T : class,ITimetables, new()
         {
             await foreach (var dbModel in dbModels)
             {
@@ -79,7 +87,7 @@ namespace ZseTimetable.Services
 
                     if (record != null)
                     {
-                        FillDbModel(record);
+                        _db.FillITimetablesModel(record);
                         dbModel.TimetableId = record.TimetableId;
                         _db.Update((long)record.Id, dbModel);
                         _db.Update(record.TimetableId, dbModel.Timetable);
@@ -91,19 +99,18 @@ namespace ZseTimetable.Services
                             _db.Update((long)day.Id, DbDay);
                             foreach (var DbLesson in DbDay.Lessons)
                             {
-                                var matchingLesson = day.Lessons?.FirstOrDefault(x => x.Number == DbLesson.Number
-                                                                 && x.Name == DbLesson.Name && x.Group == DbLesson.Group);
+                                var matchingLesson = day.Lessons?.FirstOrDefault(x => x.Number == DbLesson.Number && x.Group == DbLesson.Group);
                                 if (matchingLesson != null)
                                 {
-                                    _db.Update((long)matchingLesson.Id, DbLesson);
+                                    //_db.Update((long)matchingLesson.Id, DbLesson);
+                                    UpdateLesson((long)matchingLesson.Id, DbLesson);
                                     day.Lessons.Remove(matchingLesson); // TODO - Becouse of this one line TimetableDay.Lessons has to be list
                                 }
                                 else
                                 {
-                                    DbLesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
-                                        .SetValue(DbLesson, dbModel.Name);
-                                    DbLesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
-                                        .SetValue(DbLesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
+                                    dbModel.SetLessonId(DbLesson);
+                                    dbModel.SetLessonName(DbLesson);
+
                                     CreateLesson(DbLesson, DbDay);
                                 }
 
@@ -133,16 +140,20 @@ namespace ZseTimetable.Services
                             day.Id = _db.Create(day);
                             foreach (var lesson in day.Lessons)
                             {
-                                lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
-                                    .SetValue(lesson, dbModel.Name);
-                                lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
-                                    .SetValue(lesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
+                                dbModel.SetLessonId(lesson);
+                                dbModel.SetLessonName(lesson);
+                                //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
+                                //    .SetValue(lesson, dbModel.Name);
+                                //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
+                                //    .SetValue(lesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
 
                                 CreateLesson(lesson, day);
+                                
                             }
                         }
                     }
 
+                    
                 }
                 catch (Exception e)
                 {
@@ -150,123 +161,111 @@ namespace ZseTimetable.Services
                     throw;
                 }
             }
-            
+
+            dbModels = null;
         }
 
-        private void FillDbModel<T>(T record) where T : class, ITimetables, new()
+        private void UpdateLesson(long oldLessonId, LessonDB newLesson)
         {
-            record.Timetable = _db.Get<TimetableDB>(record.TimetableId);
-            record.Timetable.Days =
-                _db.GetAll<TimetableDayDB>()?.Where(x => x.TimetableId == record.Timetable.Id);
-            foreach (var day in record.Timetable.Days)
+            var matchingClassLesson = FindAndFillLesson<ClassDB>(newLesson);
+            if (matchingClassLesson != null)
             {
-                var dayLessons = _db.GetAll<TimetableDayLessonDB>()?.Where(x => x.TimetableDayId == day.Id);
-                var Lessons = _db.GetAll<LessonDB>();
-                if (dayLessons != null && Lessons != null)
+                _db.Update((long)matchingClassLesson.Id, matchingClassLesson);
+                //_db.Create(new TimetableDayLessonDB
+                //{
+                //    LessonId = (long)matchingClassLesson.Id,
+                //    TimetableDayId = (long)day.Id
+                //});
+                return;
+            }
+
+            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(newLesson);
+            if (matchingClassroomLesson != null)
+            {
+                _db.Update((long)matchingClassroomLesson.Id, matchingClassroomLesson);
+                //_db.Create(new TimetableDayLessonDB
+                //{
+                //    LessonId = (long)matchingClassroomLesson.Id,
+                //    TimetableDayId = (long)day.Id
+                //});
+                return;
+            }
+
+            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(newLesson);
+            if (matchingTeacherLesson != null)
+            {
+                _db.Update((long)matchingTeacherLesson.Id, matchingTeacherLesson);
+                //_db.Create(new TimetableDayLessonDB
+                //{
+                //    LessonId = (long)matchingTeacherLesson.Id,
+                //    TimetableDayId = (long)day.Id
+                //});
+                return;
+            }
+        }
+
+        private LessonDB FindAndFillLesson<T>(LessonDB lesson) where T: class, ITimetables, new()
+        {
+            var t = new T();
+            if (t.GetLessonName(lesson) != null && t.GetLessonLink(lesson) != null)
+            {
+                var matchingClass = _db.GetByLink<T>(t.GetLessonLink(lesson)) ??  _db.GetByName<T>(t.GetLessonName(lesson));
+                if (matchingClass != null)
                 {
-                    day.Lessons = (from dayLessonDb in dayLessons
-                                   join lessonDb in Lessons on dayLessonDb.LessonId equals
-                                       lessonDb.Id //TODO - ! THIS QUERIES TWO ENTIRE TABLES ! 
-                                   select lessonDb ).ToList(); 
+                    _db.FillITimetablesModel(matchingClass);
+                    var matchingLesson = FindMatchingLesson(matchingClass.Timetable.Days, lesson);
+                    if (matchingLesson != null)
+                    {
+                        matchingLesson.ClassId ??= lesson.ClassId;
+                        matchingLesson.ClassroomId ??= lesson.ClassroomId;
+                        matchingLesson.TeacherId ??= lesson.TeacherId;
+                        return matchingLesson;
+                    }
                 }
             }
+
+            return null;
         }
 
         private void CreateLesson(LessonDB lesson, TimetableDayDB day) // TODO - DRY :)
         {
-            //var matchingDbModel = _db.GetByName<T>(lesson.ClassName);
-            //if (matchingDbModel != null)
-            //{
-            //    FillDbModel(matchingDbModel);
-            //    var matchingLesson = matchingDbModel.Timetable.Days
-            //        .FirstOrDefault(x => x.Day == day.Day)?.Lessons
-            //        .FirstOrDefault(x => x.Number == lesson.Number
-            //                             && x.Name == lesson.Name && x.Group == lesson.Group);
-            //    if (matchingLesson != null)
-            //    {
-            //        _db.Create(new TimetableDayLessonDB
-            //        {
-            //            LessonId = (long)matchingLesson.Id,
-            //            TimetableDayId = (long)day.Id
-            //        });
-            //        return;
-            //    }
-            //}
 
-            if (lesson.ClassName != null && lesson.ClassLink != null)
+            var matchingClassLesson = FindAndFillLesson<ClassDB>(lesson);
+            if (matchingClassLesson != null)
             {
-                var matchingClass = _db.GetByName<ClassDB>(lesson.ClassName) ?? _db.GetByLink<ClassDB>(lesson.ClassLink) ;
-                if (matchingClass != null)
+                _db.Update((long)matchingClassLesson.Id, matchingClassLesson);
+                _db.Create(new TimetableDayLessonDB
                 {
-                    FillDbModel(matchingClass);
-                    var matchingLesson = matchingClass.Timetable.Days?
-                        .FirstOrDefault(x => x.Day == day.Day)?.Lessons?
-                        .FirstOrDefault(x => x.Number == lesson.Number
-                                             && x.Name == lesson.Name && x.Group == lesson.Group);
-                    if (matchingLesson != null)
-                    {
-                        matchingLesson.ClassroomId ??= lesson.ClassroomId;
-                        matchingLesson.TeacherId ??= lesson.TeacherId;
-                        _db.Update((long)matchingLesson.Id, matchingLesson);
-                        _db.Create(new TimetableDayLessonDB
-                        {
-                            LessonId = (long)matchingLesson.Id,
-                            TimetableDayId = (long)day.Id
-                        });
-                        return;
-                    }
-                }
+                    LessonId = (long)matchingClassLesson.Id,
+                    TimetableDayId = (long)day.Id
+                });
+                return;
             }
 
-            if (lesson.ClassroomName != null && lesson.ClassroomLink != null)
+            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(lesson);
+            if (matchingClassroomLesson != null)
             {
-                var matchingClassroom = _db.GetByName<ClassroomDB>(lesson.ClassroomName) ?? _db.GetByLink<ClassroomDB>(lesson.ClassroomLink);
-                if (matchingClassroom != null)
+                _db.Update((long)matchingClassroomLesson.Id, matchingClassroomLesson);
+                _db.Create(new TimetableDayLessonDB
                 {
-                    FillDbModel(matchingClassroom);
-                    var matchingLesson = matchingClassroom.Timetable.Days?
-                        .FirstOrDefault(x => x.Day == day.Day)?.Lessons?
-                        .FirstOrDefault(x => x.Number == lesson.Number
-                                             && x.Name == lesson.Name && x.Group == lesson.Group);
-                    if (matchingLesson != null)
-                    {
-                        matchingLesson.ClassId ??= lesson.ClassId;
-                        matchingLesson.TeacherId ??= lesson.TeacherId;
-                        _db.Update((long)matchingLesson.Id, lesson);
-                        _db.Create(new TimetableDayLessonDB
-                        {
-                            LessonId = (long)matchingLesson.Id,
-                            TimetableDayId = (long)day.Id
-                        });
-                        return;
-                    }
-                }
+                    LessonId = (long)matchingClassroomLesson.Id,
+                    TimetableDayId = (long)day.Id
+                });
+                return;
             }
 
-            if (lesson.TeacherName != null && lesson.TeachereLink != null)
+            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(lesson);
+            if (matchingTeacherLesson != null)
             {
-                var matchingTeacher = _db.GetByName<TeacherDB>(lesson.TeacherName) ?? _db.GetByLink<TeacherDB>(lesson.TeachereLink);
-                if (matchingTeacher != null)
+                _db.Update((long)matchingTeacherLesson.Id, matchingTeacherLesson);
+                _db.Create(new TimetableDayLessonDB
                 {
-                    FillDbModel(matchingTeacher);
-                    var matchingLesson = matchingTeacher.Timetable.Days?
-                        .FirstOrDefault(x => x.Day == day.Day)?.Lessons
-                        .FirstOrDefault(x => x.Number == lesson.Number
-                                             && x.Name == lesson.Name && x.Group == lesson.Group);
-                    if (matchingLesson != null)
-                    {
-                        matchingLesson.ClassId ??= lesson.ClassId;
-                        matchingLesson.ClassroomId ??= lesson.ClassroomId;
-                        _db.Update((long)matchingLesson.Id, lesson);
-                        _db.Create(new TimetableDayLessonDB
-                        {
-                            LessonId = (long)matchingLesson.Id,
-                            TimetableDayId = (long)day.Id
-                        });
-                        return;
-                    }
-                }
+                    LessonId = (long)matchingTeacherLesson.Id,
+                    TimetableDayId = (long)day.Id
+                });
+                return;
             }
+
 
             var dayLesson = new TimetableDayLessonDB
             {
@@ -276,43 +275,49 @@ namespace ZseTimetable.Services
             _db.Create(dayLesson);
         }
 
-        private async IAsyncEnumerable<T> GetDBModels<T>(IEnumerable<IScrappable> scrpModels) where T : class, IDBModel
+        private LessonDB FindMatchingLesson(IEnumerable<TimetableDayDB> timetableDays, LessonDB lesson)
         {
-            foreach (var scrpModel in scrpModels)
+            foreach (var day in timetableDays)
             {
-                yield return scrpModel.GetDBModel<T>();
+                var match = day.Lessons?.Find(x => x.Number == lesson.Number
+                                                  && x.Name == lesson.Name && x.Group == lesson.Group);
+                if (match != null)
+                {
+                    return match;
+                }
+
             }
+            return null;
+
         }
 
-        private async  Task<IEnumerable<T>> GetTimetable<T>(char letter) where T : IScrappable, new()
+
+        private async  IAsyncEnumerable<T> GetTimetable<T>(char letter) where T : IScrappable, new()
         {
             //gets all urls 
             var allUrls = GetAllUrls(letter);
-            var allTimetables = new List<T>();
             //gets html files and uses scrapper to scrap them
             await foreach (var url in allUrls)
             {
                 T returner = new T(); // ?????
-                using (HttpClient client = new HttpClient())
-                {
-                    try
+                returner.Link = url[(_client.BaseAddress.AbsoluteUri.Length + baseName.Length+1)..];
+                try
                     {
-                        var rawTimetable = await client.GetStreamAsync(url);
-                        var html = await new StreamReader(rawTimetable).ReadToEndAsync();
-                        returner.Timetable = await _scrapper.Scrap<T>(html);
+                        using (var rawTimetable = await _client.GetStreamAsync(url))
+                        {
+                            var html = await new StreamReader(rawTimetable).ReadToEndAsync();
+                            returner.Timetable = await _scrapper.Scrap<T>(html);
+                        }
+
                     }
                     catch (HttpRequestException e)
                     {
                         _logger.LogCritical($"{e.Message},{e.InnerException},{e.Source}");
                         throw;
-                    } 
-                }
-
-                returner.Name = returner.Timetable.Title;
-                allTimetables.Add(returner);
+                    }
+                    returner.Name = returner.Timetable.Title;
+                yield return returner;
             }
-
-            return allTimetables;
         }
 
         private async IAsyncEnumerable<string> GetAllUrls(char letter)
@@ -320,17 +325,16 @@ namespace ZseTimetable.Services
             int  id = 1;
             while (true)
             {
-                using (HttpClient client = new HttpClient())
-                {
+
                     var head = new HttpRequestMessage(HttpMethod.Head,
-                        $"{baseAddress}/{letter}{id}.html")
+                        $"{_client.BaseAddress}{baseName}/{letter}{id}.html")
                     {
                         Headers = { IfModifiedSince = DateTime.Now.Subtract(TimeSpan.FromDays(365)).ToUniversalTime()
                             }
                     };
 
                     HttpResponseMessage response;
-                    try { response = await client.SendAsync(head); }
+                    try { response = await _client.SendAsync(head); }
                     catch (HttpRequestException e) { break; }
 
                     if (response.StatusCode == HttpStatusCode.NotFound)
@@ -339,11 +343,10 @@ namespace ZseTimetable.Services
                     }
                     if (response.IsSuccessStatusCode)
                     {
-                        yield return $"{baseAddress}/{letter}{id}.html";
+                        yield return $"{_client.BaseAddress}{baseName}/{letter}{id}.html";
                     }
 
-                }
-                id++;
+                    id++;
             }
         }
 

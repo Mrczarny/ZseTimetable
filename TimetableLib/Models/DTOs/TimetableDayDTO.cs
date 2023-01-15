@@ -11,10 +11,10 @@ namespace TimetableLib.Models.DTOs
         {
             Id = (long) tb.Id;
             Day = tb.Day;
-            Lessons = tb.Lessons.Select(x => new LessonDTO(x));
+            Lessons = tb.Lessons.Select(x => new LessonDTO(x)).ToList();
         }
         public long Id { get; set; }
-        public IEnumerable<LessonDTO> Lessons { get; set; }
+        public List<LessonDTO> Lessons { get; set; }
         public DayOfWeek Day { get; set; }
     }
 }

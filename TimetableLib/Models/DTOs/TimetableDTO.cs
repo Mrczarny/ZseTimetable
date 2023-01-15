@@ -14,7 +14,7 @@ namespace TimetableLib.Models.DTOs
             EndDate = tb.EndDate;
             Days = tb.Days.Select(x => new TimetableDayDTO(x));
         }
-        public long Id { get; set; }
+        public long? Id { get; set; }
         public IEnumerable<TimetableDayDTO> Days { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }

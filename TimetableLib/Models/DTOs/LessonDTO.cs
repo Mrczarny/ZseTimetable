@@ -13,6 +13,10 @@ namespace TimetableLib.Models.DTOs
             ClassId = ls.ClassId;
             TeacherId = ls.TeacherId;
             ClassroomId = ls.ClassroomId;
+            ClassName = ls.ClassName;
+            ClassroomName = ls.ClassroomName;
+            TeacherName = ls.TeacherName;
+            
         }
 
         public long Id { get; set; }
@@ -25,6 +29,7 @@ namespace TimetableLib.Models.DTOs
         public string? TeacherName { get; set; }
         public long? ClassroomId { get; set; }
         public string? ClassroomName { get; set; }
+        public bool IsAReplacement { get; set; } = false;
 
     }
 }

@@ -31,7 +31,7 @@ namespace TimetableLib.Models.DBModels
 
         [SqlType(SqlDbType.NVarChar)]
         public string Link { get; set; }
-        
+
         public void SetLessonId(LessonDB ls)
         {
             ls.ClassId = Id;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using TimetableLib.Models.DBModels;
+using TimetableLib.Models.ScrapperModels;
 
 namespace TimetableLib.DataAccess
 {
@@ -59,15 +60,6 @@ namespace TimetableLib.DataAccess
         /// otherwise null</returns>
         public abstract T? Get<T>() where T : class, IDBModel, new();
 
-        //Get by Name
-        /// <summary>
-        /// Gets existing record from database by DB id
-        /// </summary>
-        /// <typeparam name="T">DB model of this record</typeparam>
-        /// <param name="name">Field "Name" of this record</param>
-        /// <returns>If existing - returns record with matching "Name",
-        /// otherwise null</returns>
-        public abstract T? GetByName<T>(string name) where T : class, IDBModel, new();
 
         // Gets all records 
         /// <summary>
@@ -77,6 +69,15 @@ namespace TimetableLib.DataAccess
         /// <returns>If existing - returns all records in given table,
         /// otherwise null</returns>
         public abstract IEnumerable<T> GetAll<T>() where T : IDBModel, new();
+
+
+        public async IAsyncEnumerable<T> GetDBModels<T>(IAsyncEnumerable<IPersist> models) where T : class, IDBModel
+        {
+            await foreach (var model in models)
+            {
+                yield return model.GetDBModel<T>();
+            }
+        }
 
     }
 }

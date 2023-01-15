@@ -10,7 +10,7 @@ namespace TimetableLib.Models.DBModels
     /// Models of objects that contain timetable within themselves,
     /// such as Classes, Classrooms or Teachers 
     /// </summary>
-    public interface ITimetables : IDBModel
+    public interface ITimetables : IDBModel, IDisposable
     {
         public long? Id { get; set; }
 
@@ -23,5 +23,13 @@ namespace TimetableLib.Models.DBModels
 
         [SqlType(SqlDbType.NVarChar)]
         public string Link { get; set; }
+
+        public void SetLessonId(LessonDB ls);
+
+        public void SetLessonName(LessonDB ls);
+
+        public string? GetLessonLink(LessonDB ls);
+
+        public string? GetLessonName(LessonDB ls);
     }
 }

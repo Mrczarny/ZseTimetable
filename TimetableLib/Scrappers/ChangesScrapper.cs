@@ -49,9 +49,12 @@ namespace ZseTimetable
                 yield return new LessonReplacement()
                 {
                     LessonNumber = byte.Parse(replacementsMatch.Groups["lessonNumber"].Value),
-                    Description = replacementsMatch.Groups["Description"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Description"].Value,
-                    Sub = replacementsMatch.Groups["Sub"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Sub"].Value,
-                    Note = replacementsMatch.Groups["Note"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Note"].Value
+                    ClassName = replacementsMatch.Groups["className"].Value,
+                    Group = replacementsMatch.Groups["groupName"].Value,
+                    ClassroomName = replacementsMatch.Groups["classroomName"].Value,
+                    Description = replacementsMatch.Groups["description"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Description"].Value,
+                    Sub = replacementsMatch.Groups["sub"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Sub"].Value,
+                    Note = replacementsMatch.Groups["note"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Note"].Value
                 };
             }
         }

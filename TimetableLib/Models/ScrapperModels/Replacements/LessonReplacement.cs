@@ -6,8 +6,11 @@ namespace TimetableLib.Changes
 {
     public class LessonReplacement : IPersist
     {
-        public string TeacherName { get; set; }
+        public string OriginalTeacher { get; set; }
         public byte LessonNumber { get; set; }
+        public string ClassName { get; set; }
+        public string ClassroomName { get; set; }
+        public string Group { get; set; }
         public string Description { get; set; }
         public string Sub { get; set; }
         public string Note { get; set; }

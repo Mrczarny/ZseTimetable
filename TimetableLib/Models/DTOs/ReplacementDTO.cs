@@ -8,7 +8,6 @@ namespace TimetableLib.Models.DTOs
         {
             Id = (long) rp.Id;
             Note = rp.Note;
-            Lesson = new LessonDTO(rp.Lesson);
         }
         public long Id { get; set; }
         public LessonDTO Lesson { get; set; }

@@ -14,7 +14,7 @@ namespace TimetableLib.Models.DBModels
 
         public ReplacementDB(LessonReplacement lr)
         {
-            TeacherName = lr.TeacherName;
+            TeacherName = lr.OriginalTeacher;
             LessonNumber = lr.LessonNumber;
 
         }

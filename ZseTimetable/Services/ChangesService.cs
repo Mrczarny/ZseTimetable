@@ -63,6 +63,7 @@ namespace ZseTimetable.Services
                 }
                 else
                 {
+                    FillNewReplacement(dbModel);
                     _db.Create(dbModel);
                 }
             }
@@ -73,16 +74,21 @@ namespace ZseTimetable.Services
 
             foreach (var record in records)
             {
-                if (record.LessonId == dbModel.LessonId &&  
-                    record.TeacherId == dbModel.TeacherId &&
-                    record.ClassroomId == dbModel.ClassroomId &&
-                    record.LessonNumber == dbModel.LessonNumber)
+                if (record.LessonId == dbModel.LessonId)
                 {
                     return;
                 }
             }
-
+            FillNewReplacement(dbModel);
             _db.Create(dbModel);
+        }
+
+        private void FillNewReplacement(ReplacementDB rp)  
+        {
+            rp.ClassId = (long)_db.GetByName<ClassDB>(rp.ClassName)?.Id;
+            rp.ClassroomId = (long)_db.GetByName<ClassroomDB>(rp.ClassroomName)?.Id;
+            rp.TeacherId = (long)_db.GetByName<TeacherDB>(rp.TeacherName)?.Id;
+            rp.LessonId = (long)_db.GetLessonId(rp.TeacherId, rp.LessonNumber, DateTime.Today.DayOfWeek);
         }
 
         private async IAsyncEnumerable<IPersist> GetAllReplacements()

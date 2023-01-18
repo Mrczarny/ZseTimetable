@@ -28,7 +28,7 @@ namespace ZseTimetable
             services.AddHttpClient("baseHttp",HttpClient => HttpClient.BaseAddress = new Uri("https://plan.zse.bydgoszcz.pl"));
             services.AddControllers();
             services.AddHostedService<TimetablesService>();
-            services.AddHostedService<ChangesService>();
+            //services.AddHostedService<ChangesService>();
             services.AddSingleton<IDataWrapper,DatabaseService>();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }

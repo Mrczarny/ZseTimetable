@@ -9,6 +9,6 @@ namespace TimetableLib.DataAccess
     {
         public abstract IEnumerable<T>? GetByDate<T>(DateTime date) where T : ReplacementDB, new();
 
-
+        public abstract long? GetLessonId(long teacherId, byte lessonNumber, DayOfWeek day);
     }
 }

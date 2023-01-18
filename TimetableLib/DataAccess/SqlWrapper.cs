@@ -177,6 +177,43 @@ namespace TimetableLib.DataAccess
                 return result;
             }
 
+            public override T GetByName<T>(string name)
+            {
+                var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetByName")
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.Add(new SqlParameter("@Name", name));
+
+                T record = new T();
+                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    command.Connection = connection;
+                    connection.Open();
+                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                    if (sqlData.HasRows)
+                    {
+                        while (sqlData.Read())
+                        {
+                            foreach (var property in properties)
+                            {
+                                var value = sqlData.GetValue(property.Name);
+                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                return record;
+            }
+
             public override IEnumerable<T>? GetAll<T>()
             {
                 var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetAll")
@@ -241,42 +278,7 @@ namespace TimetableLib.DataAccess
 
             public override IEnumerable<T> GetAll<T>() => _baseWrapper.GetAll<T>();
 
-            public override T GetByName<T>(string name)
-            {
-                var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetByName")
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                command.Parameters.Add(new SqlParameter("@Name", name));
-
-                T record = new T();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
-
-
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-
-                return record;
-            }
+            public override T GetByName<T>(string name) => _baseWrapper.GetByName<T>(name);
 
             public override T GetByLink<T>(string name) where T : class
             {
@@ -417,6 +419,8 @@ namespace TimetableLib.DataAccess
 
             public override T Get<T>() => _baseWrapper.Get<T>();
 
+            public override T GetByName<T>(string name) => _baseWrapper.GetByName<T>(name);
+
             public override IEnumerable<T> GetAll<T>() => _baseWrapper.GetAll<T>();
 
             public override IEnumerable<T> GetByDate<T>(DateTime date)
@@ -457,6 +461,35 @@ namespace TimetableLib.DataAccess
                 }
 
                 return records;
+            }
+
+            public override long? GetLessonId(long teacherId, byte lessonNumber, DayOfWeek day)
+            {
+                var command = new SqlCommand($"dbo.spLesson_GetByTeacherId")
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.Add(new SqlParameter("@TeacherId", teacherId));
+                command.Parameters.Add(new SqlParameter("@LessonNumber", lessonNumber));
+                command.Parameters.Add(new SqlParameter("@Day", day));
+                LessonDB record = new LessonDB();
+                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    command.Connection = connection;
+                    connection.Open();
+                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                    if (sqlData.HasRows)
+                    {
+                        return (long) sqlData[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
             }
         }
     }

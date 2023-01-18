@@ -10,15 +10,6 @@ namespace TimetableLib.DBAccess
 {
     public abstract class TimetablesAccess : DbAccess
     {
-        //Get by Name
-        /// <summary>
-        /// Gets existing record from database by DB id
-        /// </summary>
-        /// <typeparam name="T">DB model of this record</typeparam>
-        /// <param name="name">Field "Name" of this record</param>
-        /// <returns>If existing - returns record with matching "Name",
-        /// otherwise null</returns>
-        public abstract T? GetByName<T>(string name) where T : class, ITimetables, new(); 
 
         //Get by Name
         public abstract T? GetByLink<T>(string name) where T : class, ITimetables, new();

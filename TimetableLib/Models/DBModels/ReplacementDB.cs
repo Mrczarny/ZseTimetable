@@ -15,6 +15,9 @@ namespace TimetableLib.Models.DBModels
         public ReplacementDB(LessonReplacement lr)
         {
             TeacherName = lr.OriginalTeacher;
+            ClassName = lr.ClassName;
+            ClassroomName = lr.ClassroomName;
+            Group = lr.Group;
             LessonNumber = lr.LessonNumber;
 
         }
@@ -33,11 +36,16 @@ namespace TimetableLib.Models.DBModels
         [SqlType(SqlDbType.BigInt)]
         public long ClassId { get; set; }
         [SqlType(SqlDbType.NVarChar)]
-        public string group { get; set; }
-
+        public string Group { get; set; }
+        [SqlType(SqlDbType.NVarChar)]
         public string TeacherName { get; set; }
+        [SqlType(SqlDbType.NVarChar)]
         public string ClassName { get; set; }
+        [SqlType(SqlDbType.NVarChar)]
         public string ClassroomName { get; set; }
+
+
+
         public byte LessonNumber { get; set; }
         //public LessonDB Lesson { get; set; }
         //public TeacherDB Teacher { get; set; }

@@ -29,6 +29,7 @@ namespace ZseTimetable.Services
         private readonly string baseName = "plany";
         private readonly IConfiguration _config;
         private HttpClient _client;
+        private readonly DateTime _modifiedSince;
 
         public TimetablesService(ILogger<TimetablesService> logger, IConfiguration config, IDataWrapper db, IHttpClientFactory client)
         {
@@ -42,6 +43,8 @@ namespace ZseTimetable.Services
             TimetablesTypes = config.GetSection(ScrapperOption.Position).GetSection("Types").GetChildren()
                 .Select(x => x.Get<TimetableServiceOption>());
             _client = client.CreateClient("baseHttp");
+            var year = DateTime.Now.Month > 7 ? DateTime.Now.Year : DateTime.Now.Year-1;
+            _modifiedSince =  DateTime.Parse($"01.08.{year}"); 
         }
         public Task StartAsync(CancellationToken stoppingToken)
         {
@@ -102,6 +105,8 @@ namespace ZseTimetable.Services
                                 var matchingLesson = day.Lessons?.FirstOrDefault(x => x.Number == DbLesson.Number && x.Group == DbLesson.Group);
                                 if (matchingLesson != null)
                                 {
+                                    dbModel.SetLessonId(DbLesson);
+                                    dbModel.SetLessonName(DbLesson);
                                     //_db.Update((long)matchingLesson.Id, DbLesson);
                                     UpdateLesson((long)matchingLesson.Id, DbLesson);
                                     day.Lessons.Remove(matchingLesson); // TODO - Becouse of this one line TimetableDay.Lessons has to be list
@@ -145,7 +150,7 @@ namespace ZseTimetable.Services
                                 //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
                                 //    .SetValue(lesson, dbModel.Name);
                                 //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
-                                //    .SetValue(lesson, dbModel.Id); //TODO - too ambiguous, will couse crash someday
+                                //    .SetValue(lesson, dbModel.Id); 
 
                                 CreateLesson(lesson, day);
                                 
@@ -329,7 +334,7 @@ namespace ZseTimetable.Services
                     var head = new HttpRequestMessage(HttpMethod.Head,
                         $"{_client.BaseAddress}{baseName}/{letter}{id}.html")
                     {
-                        Headers = { IfModifiedSince = DateTime.Now.Subtract(TimeSpan.FromDays(365)).ToUniversalTime()
+                        Headers = { IfModifiedSince = _modifiedSince
                             }
                     };
 

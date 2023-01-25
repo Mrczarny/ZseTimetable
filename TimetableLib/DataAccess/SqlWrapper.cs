@@ -472,8 +472,8 @@ namespace TimetableLib.DataAccess
                 command.Parameters.Add(new SqlParameter("@TeacherId", teacherId));
                 command.Parameters.Add(new SqlParameter("@LessonNumber", lessonNumber));
                 command.Parameters.Add(new SqlParameter("@Day", day));
-                LessonDB record = new LessonDB();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+                var properties = typeof(LessonDB).GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -481,9 +481,15 @@ namespace TimetableLib.DataAccess
                     command.Connection = connection;
                     connection.Open();
                     var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                    long? id = null;
                     if (sqlData.HasRows)
                     {
-                        return (long) sqlData[0];
+                        while (sqlData.Read())
+                        {
+                            id = (long)sqlData[0];
+                        }
+
+                        return id;
                     }
                     else
                     {

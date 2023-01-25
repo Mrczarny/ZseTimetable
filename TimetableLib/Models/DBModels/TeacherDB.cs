@@ -50,8 +50,6 @@ namespace TimetableLib.Models.DBModels
 
         public TimetableDB Timetable { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
-        public string TimetableLink { get; set; }
 
         public void Dispose()
         {
@@ -59,7 +57,6 @@ namespace TimetableLib.Models.DBModels
             Id = null;
             Link = null;
             Name = null;
-            TimetableLink = null;
 
         }
     }

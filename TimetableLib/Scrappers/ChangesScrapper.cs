@@ -36,7 +36,7 @@ namespace ZseTimetable
             ));
         }
 
-        private IEnumerable<LessonReplacement> ScrapClassReplacements(string rawClassReplacements)
+        private IEnumerable<LessonReplacement> ScrapClassReplacements(string rawClassReplacements, string TeacherName)
         {
             var replacementsMatches = _dic[nameof(ScrapClassReplacements)].
                 Matches(rawClassReplacements);
@@ -49,12 +49,13 @@ namespace ZseTimetable
                 yield return new LessonReplacement()
                 {
                     LessonNumber = byte.Parse(replacementsMatch.Groups["lessonNumber"].Value),
-                    ClassName = replacementsMatch.Groups["className"].Value,
+                    ClassName = replacementsMatch.Groups["className"].Value.Replace(" ", String.Empty),
                     Group = replacementsMatch.Groups["groupName"].Value,
                     ClassroomName = replacementsMatch.Groups["classroomName"].Value,
                     Description = replacementsMatch.Groups["description"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Description"].Value,
                     Sub = replacementsMatch.Groups["sub"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Sub"].Value,
-                    Note = replacementsMatch.Groups["note"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Note"].Value
+                    Note = replacementsMatch.Groups["note"].Value == "&nbsp;" ? null : replacementsMatch.Groups["Note"].Value,
+                    OriginalTeacher = TeacherName
                 };
             }
         }
@@ -74,7 +75,7 @@ namespace ZseTimetable
                     {
                         Name = replacementMatch.Groups["TeacherName"].Value
                     },
-                    ClassReplacements = ScrapClassReplacements(replacementMatch.Groups["rawClassReplacements"].Value)
+                    ClassReplacements = ScrapClassReplacements(replacementMatch.Groups["rawClassReplacements"].Value, replacementMatch.Groups["TeacherName"].Value)
                 };
             }
 

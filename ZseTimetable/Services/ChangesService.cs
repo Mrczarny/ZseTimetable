@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -64,7 +65,10 @@ namespace ZseTimetable.Services
                 else
                 {
                     FillNewReplacement(dbModel);
-                    _db.Create(dbModel);
+                    if (dbModel.LessonId != null)
+                    {
+                        _db.Create(dbModel);
+                    }
                 }
             }
         }
@@ -80,22 +84,27 @@ namespace ZseTimetable.Services
                 }
             }
             FillNewReplacement(dbModel);
-            _db.Create(dbModel);
+            if (dbModel.LessonId != null)
+            {
+                _db.Create(dbModel);
+            }
         }
 
         private void FillNewReplacement(ReplacementDB rp)  
         {
-            rp.ClassId = (long)_db.GetByName<ClassDB>(rp.ClassName)?.Id;
-            rp.ClassroomId = (long)_db.GetByName<ClassroomDB>(rp.ClassroomName)?.Id;
-            rp.TeacherId = (long)_db.GetByName<TeacherDB>(rp.TeacherName)?.Id;
-            rp.LessonId = (long)_db.GetLessonId(rp.TeacherId, rp.LessonNumber, DateTime.Today.DayOfWeek);
+            rp.ClassId = _db.GetByName<ClassDB>(rp.ClassName)?.Id;
+            rp.ClassroomId = _db.GetByName<ClassroomDB>(rp.ClassroomName)?.Id;
+            rp.TeacherId = _db.GetByName<TeacherDB>($"{rp.TeacherName[0]}.{rp.TeacherName.Split(' ').Last()}")?.Id;
+            if (rp.TeacherId != null)
+                rp.LessonId = _db.GetLessonId((long) rp.TeacherId, rp.LessonNumber, DateTime.Today.DayOfWeek);
+
         }
 
         private async IAsyncEnumerable<IPersist> GetAllReplacements()
         {
             using (var rawChanges = await _client.GetStreamAsync($"https://zastepstwa.zse.bydgoszcz.pl"))
             {
-                var spChanges = _scrapper.Scrap(await new StreamReader(rawChanges).ReadToEndAsync());
+                var spChanges = _scrapper.Scrap(await new StreamReader(rawChanges,Encoding.GetEncoding("iso-8859-2")).ReadToEndAsync());
                 foreach (var tReplacement in spChanges.Replacements)
                 {
                     foreach (var lReplacement in tReplacement.ClassReplacements)

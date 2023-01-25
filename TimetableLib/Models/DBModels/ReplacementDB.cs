@@ -25,24 +25,36 @@ namespace TimetableLib.Models.DBModels
         [Identity]
         [SqlType(SqlDbType.BigInt)]
         public long? Id { get; set; }
+
         [SqlType(SqlDbType.BigInt)]
-        public long LessonId { get; set; }
+        public long? LessonId { get; set; }
+
         [SqlType(SqlDbType.BigInt)]
-        public long TeacherId { get; set; }
+        public long? TeacherId { get; set; }
+
         [SqlType(SqlDbType.BigInt)]
-        public long ClassroomId { get; set; }
+        public long? ClassroomId { get; set; }
+
         [SqlType(SqlDbType.NVarChar)]
         public string Note { get; set; }
+
         [SqlType(SqlDbType.BigInt)]
-        public long ClassId { get; set; }
+        public long? ClassId { get; set; }
+
         [SqlType(SqlDbType.NVarChar)]
         public string Group { get; set; }
+
         [SqlType(SqlDbType.NVarChar)]
         public string TeacherName { get; set; }
+
         [SqlType(SqlDbType.NVarChar)]
         public string ClassName { get; set; }
+
         [SqlType(SqlDbType.NVarChar)]
         public string ClassroomName { get; set; }
+
+        [SqlType(SqlDbType.Date)]
+        public DateTime Date { get; set; } = DateTime.Today;
 
 
 

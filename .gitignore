@@ -369,5 +369,6 @@ FodyWeavers.xsd
 /ca-certificates.conf
 /.dockerignore
 /ZseTimetable/Dockerfile
+/MockApi/
 /MockApi/Dockerfile
 /ZseTimetable/appsettings.json

@@ -40,27 +40,49 @@ namespace ZseTimetable.Controllers
         }
 
 
-        //[HttpGet]
-        //[Produces(MediaTypeNames.Application.Json)]
-        //public async Task<ActionResult<IEnumerable<ReplacementDTO>>> GetChangesAsync()
-        //{
-        //    try
-        //    {
-        //        DayReplacements scrappedChanges;
-        //        using (var rawChanges = await _client.GetStreamAsync("zmiany"))
-        //        {
-        //            scrappedChanges = _scrapper.Scrap(await new StreamReader(rawChanges).ReadToEndAsync());
-        //        }
+        [HttpGet]
+        [HttpGet("Today")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<ReplacementDTO>>> GetChangesAsync()
+        {
+            try
+            {
+                var dbReplacements = _db.GetByDate<ReplacementDB>(DateTime.Today);
+                List<ReplacementDTO> replacements = new List<ReplacementDTO>();
+                foreach (var rp in dbReplacements)
+                {
+                    replacements.Add(new ReplacementDTO(rp));
+                }
 
-        //        //_db.Update<ReplacementDB>(jsonChanges.Replacements);
-        //        throw new NotImplementedException();
+                return replacements;
+            }
+            catch (HttpRequestException exception)
+            {
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
+            }
+        }
 
-        //    }
-        //    catch (HttpRequestException exception)
-        //    {
-        //        return Problem(exception.Message);
-        //    }
-        //}
+        [HttpGet("{date:datetime}")]
+        public async Task<ActionResult<IEnumerable<ReplacementDTO>>> GetReplacementByDate(DateTime date)
+        {
+            try
+            {
+                var dbReplacements = _db.GetByDate<ReplacementDB>(date);
+                List<ReplacementDTO> replacements = new List<ReplacementDTO>();
+                foreach (var rp in dbReplacements)
+                {
+                    replacements.Add(new ReplacementDTO(rp));
+                }
+
+                return replacements;
+            }
+            catch (HttpRequestException exception)
+            {
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
+            }
+        }
     }
 }
 

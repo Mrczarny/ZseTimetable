@@ -1,28 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using TimetableLib.Models.DBModels.DBAttributes;
 
 namespace TimetableLib.Models.DBModels
 {
     /// <summary>
-    /// Models of objects that contain timetable within themselves,
-    /// such as Classes, Classrooms or Teachers 
+    ///     Models of objects that contain timetable within themselves,
+    ///     such as Classes, Classrooms or Teachers
     /// </summary>
     public interface ITimetables : IDBModel, IDisposable
     {
         public long? Id { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
-        public string Name { get; set; }
+        [SqlType(SqlDbType.NVarChar)] public string Name { get; set; }
+
         public TimetableDB Timetable { get; set; }
 
-        [SqlType(SqlDbType.BigInt)]
-        public long TimetableId { get; set; }
+        [SqlType(SqlDbType.BigInt)] public long TimetableId { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
-        public string Link { get; set; }
+        [SqlType(SqlDbType.NVarChar)] public string Link { get; set; }
 
         public void SetLessonId(LessonDB ls);
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TimetableLib.Models.DBModels
+﻿namespace TimetableLib.Models.DBModels
 {
     public class TimetableServiceOption
     {

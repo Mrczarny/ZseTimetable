@@ -1,5 +1,4 @@
-﻿using System;
-using TimetableLib.Models.DBModels;
+﻿using TimetableLib.Models.DBModels;
 using TimetableLib.Models.ScrapperModels;
 
 namespace TimetableLib.Changes

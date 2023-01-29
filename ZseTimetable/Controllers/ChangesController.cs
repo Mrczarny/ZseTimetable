@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TimetableLib.DataAccess;
-using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.DTOs;
-using TimetableLib.Models.Replacements;
-using TimetableLib.Models.ScrapperModels;
 
 namespace ZseTimetable.Controllers
 {
@@ -22,9 +16,10 @@ namespace ZseTimetable.Controllers
     [ApiController]
     public class ChangesController : ControllerBase
     {
-        private readonly ILogger<ChangesController> _logger;
         private readonly HttpClient _client;
-        private ChangesAccess _db;
+        private readonly ILogger<ChangesController> _logger;
+
+        private readonly ChangesAccess _db;
         //private readonly ChangesScrapper _scrapper;
 
         public ChangesController(IConfiguration config, ILogger<ChangesController> logger, IHttpClientFactory client,
@@ -48,11 +43,8 @@ namespace ZseTimetable.Controllers
             try
             {
                 var dbReplacements = _db.GetByDate<ReplacementDB>(DateTime.Today);
-                List<ReplacementDTO> replacements = new List<ReplacementDTO>();
-                foreach (var rp in dbReplacements)
-                {
-                    replacements.Add(new ReplacementDTO(rp));
-                }
+                var replacements = new List<ReplacementDTO>();
+                foreach (var rp in dbReplacements) replacements.Add(new ReplacementDTO(rp));
 
                 return replacements;
             }
@@ -69,11 +61,8 @@ namespace ZseTimetable.Controllers
             try
             {
                 var dbReplacements = _db.GetByDate<ReplacementDB>(date);
-                List<ReplacementDTO> replacements = new List<ReplacementDTO>();
-                foreach (var rp in dbReplacements)
-                {
-                    replacements.Add(new ReplacementDTO(rp));
-                }
+                var replacements = new List<ReplacementDTO>();
+                foreach (var rp in dbReplacements) replacements.Add(new ReplacementDTO(rp));
 
                 return replacements;
             }
@@ -85,4 +74,3 @@ namespace ZseTimetable.Controllers
         }
     }
 }
-

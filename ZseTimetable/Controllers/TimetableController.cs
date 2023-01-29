@@ -50,6 +50,7 @@ namespace ZseTimetable.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(long id = 1)
         {
+            _logger.LogInformation($"Getting class of id: {id}");
             try
             {
                 //Get latest populated(!) class from db
@@ -79,6 +80,7 @@ namespace ZseTimetable.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(string name  = "1B")
         {
+            _logger.LogInformation($"Getting class {name}...");
             try
             {
                 //Get latest populated(!) class from db
@@ -99,21 +101,31 @@ namespace ZseTimetable.Controllers
                                 _db.FillITimetablesModel(Teacher);
                                 dayLesson.ClassroomName =  Classroom.Name;
                                 dayLesson.TeacherName = Teacher.Name;
+                                dayLesson.ClassName = classLs.Name;
                             }
                         }
                     }
+
+                    //var replacements =
+                    //    _client.GetAsync($"{Request.Scheme}://{Request.Host}/Changes/Today");
+                    //if (replacements.IsCompletedSuccessfully && replacements.Result.IsSuccessStatusCode)
+                    //{
+                        
+                    //}
                     //returns DTO of timetable
                     return new ClassDTO(classLs); ;
                 }
 
 
                 //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
-
+                _logger.LogInformation($"class {name} not found!");
                 return NotFound("Class not found");
+
             }
             catch (HttpRequestException exception)
             {
-                return Problem(exception.Message);
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
             }
         }
 
@@ -121,6 +133,7 @@ namespace ZseTimetable.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<ClassroomDTO>> GetClassroomTimetableAsync(string name = "1")
         {
+            _logger.LogInformation($"Getting class {name}...");
             try
             {
                 //Get latest populated(!) classroom from db
@@ -155,7 +168,8 @@ namespace ZseTimetable.Controllers
             }
             catch (HttpRequestException exception)
             {
-                return Problem(exception.Message);
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
             }
         }
 
@@ -197,7 +211,8 @@ namespace ZseTimetable.Controllers
             }
             catch (HttpRequestException exception)
             {
-                return Problem(exception.Message);
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
             }
         }
 

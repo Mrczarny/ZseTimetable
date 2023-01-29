@@ -8,7 +8,7 @@ namespace TimetableLib.Models.DBModels.DBAttributes
     /// Attribute to mark fields that represents identities in database  
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-    public class IdentityAttribute : Attribute
+    public class IdentityAttribute : Attribute, IDbAttribute
     {
         
     }

@@ -7,7 +7,7 @@ namespace TimetableLib.Models.DBModels.DBAttributes
     /// Attribute to mark fields that represents columns in database
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-    public class SqlTypeAttribute : Attribute
+    public class SqlTypeAttribute : Attribute, IDbAttribute
     {
         /// <summary>
         /// SQL type of data of represented column in database

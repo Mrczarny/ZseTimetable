@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TimetableLib.Models.ScrapperModels
+﻿namespace TimetableLib.Models.ScrapperModels
 {
     public class ScrapperOption
     {

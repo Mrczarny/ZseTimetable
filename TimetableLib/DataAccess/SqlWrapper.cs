@@ -1,10 +1,9 @@
-﻿using Microsoft.Data.SqlClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using Microsoft.Data.SqlClient;
 using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.DBModels.DBAttributes;
@@ -14,18 +13,25 @@ namespace TimetableLib.DataAccess
     public class SqlWrapper : IDataWrapper
     {
         protected readonly string _connectionString;
-        public TimetablesAccess TimetablesAccess => new SqlTimetableWrapper(_connectionString);
-        public ChangesAccess ChangesAccess => new SqlChangesWrapper(_connectionString);
-        public DbAccess DbAccess => new SqlBaseWrapper(_connectionString);
 
         public SqlWrapper(string connectionString)
         {
             _connectionString = connectionString;
         }
 
+        public TimetablesAccess TimetablesAccess => new SqlTimetableWrapper(_connectionString);
+        public ChangesAccess ChangesAccess => new SqlChangesWrapper(_connectionString);
+        public DbAccess DbAccess => new SqlBaseWrapper(_connectionString);
+
+        private static bool IsDbProperty(PropertyInfo property)
+        {
+            return Attribute.IsDefined(property, typeof(SqlTypeAttribute));
+        }
+
         private class SqlBaseWrapper : DbAccess
         {
             private readonly string _connectionString;
+
             public SqlBaseWrapper(string connectionString)
             {
                 _connectionString = connectionString;
@@ -40,8 +46,7 @@ namespace TimetableLib.DataAccess
                     };
 
 
-                foreach (var property in record.GetType().GetProperties().
-                             Where(x => IsDbProperty(x) && x.Name != "Id"))
+                foreach (var property in record.GetType().GetProperties().Where(x => IsDbProperty(x) && x.Name != "Id"))
                 {
                     var parameter = new SqlParameter
                     {
@@ -52,6 +57,7 @@ namespace TimetableLib.DataAccess
 
                     command.Parameters.Add(parameter);
                 }
+
                 command.Parameters.Add(new SqlParameter
                 {
                     ParameterName = "@Id",
@@ -77,8 +83,7 @@ namespace TimetableLib.DataAccess
                     };
 
 
-                foreach (var property in record.GetType().GetProperties().
-                             Where(x => IsDbProperty(x) && x.Name != "Id"))
+                foreach (var property in record.GetType().GetProperties().Where(x => IsDbProperty(x) && x.Name != "Id"))
                 {
                     var parameter = new SqlParameter
                     {
@@ -95,7 +100,7 @@ namespace TimetableLib.DataAccess
                     command.Connection = connection;
                     connection.Open();
                     var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
-                    id = (long)cmdEx;
+                    id = (long) cmdEx;
                 }
 
                 return id;
@@ -103,7 +108,6 @@ namespace TimetableLib.DataAccess
 
             public override void Delete<T>(long id)
             {
-
                 var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_Delete")
                 {
                     CommandType = CommandType.StoredProcedure
@@ -116,7 +120,6 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
                 }
-
             }
 
             public override T Get<T>(long id)
@@ -126,7 +129,7 @@ namespace TimetableLib.DataAccess
                     CommandType = CommandType.StoredProcedure
                 };
                 command.Parameters.Add(new SqlParameter("@Id", id));
-                T record = new T();
+                var record = new T();
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
@@ -136,20 +139,14 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
                     if (sqlData.HasRows)
-                    {
                         while (sqlData.Read())
-                        {
                             foreach (var property in properties)
                             {
                                 var value = sqlData.GetValue(property.Name);
                                 property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                             }
-                        }
-                    }
                     else
-                    {
                         return null;
-                    }
                 }
 
                 return record;
@@ -164,7 +161,8 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     record = command.ExecuteReader();
                 }
-                T result = new T();
+
+                var result = new T();
                 foreach (var property in typeof(T).GetProperties().Where(IsDbProperty))
                 {
                     var value = record.GetValue(property.Name);
@@ -182,7 +180,7 @@ namespace TimetableLib.DataAccess
                 };
                 command.Parameters.Add(new SqlParameter("@Name", name));
 
-                T record = new T();
+                var record = new T();
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
@@ -192,20 +190,14 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
                     if (sqlData.HasRows)
-                    {
                         while (sqlData.Read())
-                        {
                             foreach (var property in properties)
                             {
                                 var value = sqlData.GetValue(property.Name);
                                 property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                             }
-                        }
-                    }
                     else
-                    {
                         return null;
-                    }
                 }
 
                 return record;
@@ -218,8 +210,8 @@ namespace TimetableLib.DataAccess
                     CommandType = CommandType.StoredProcedure
                 };
 
-                T record = new T();
-                List<T> records = new List<T>();
+                var record = new T();
+                var records = new List<T>();
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
@@ -229,7 +221,6 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var sqlData = command.ExecuteReader();
                     if (sqlData.HasRows)
-                    {
                         while (sqlData.Read())
                         {
                             record = new T();
@@ -238,24 +229,22 @@ namespace TimetableLib.DataAccess
                                 var value = sqlData.GetValue(property.Name);
                                 property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                             }
+
                             records.Add(record);
                         }
-                    }
                     else
-                    {
                         return Enumerable.Empty<T>();
-                    }
                 }
 
                 return records;
             }
-
         }
 
         private class SqlTimetableWrapper : TimetablesAccess
         {
-            private readonly string _connectionString;
             private readonly SqlBaseWrapper _baseWrapper;
+            private readonly string _connectionString;
+
             public SqlTimetableWrapper(string connectionString)
             {
                 _connectionString = connectionString;
@@ -263,19 +252,40 @@ namespace TimetableLib.DataAccess
             }
 
 
-            public override void Update<T>(long id, T record) => _baseWrapper.Update<T>(id, record);
+            public override void Update<T>(long id, T record)
+            {
+                _baseWrapper.Update(id, record);
+            }
 
-            public override long Create<T>(T record) => _baseWrapper.Create<T>(record);
+            public override long Create<T>(T record)
+            {
+                return _baseWrapper.Create(record);
+            }
 
-            public override void Delete<T>(long id) => _baseWrapper.Delete<T>(id);
+            public override void Delete<T>(long id)
+            {
+                _baseWrapper.Delete<T>(id);
+            }
 
-            public override T Get<T>(long id) => _baseWrapper.Get<T>(id);
+            public override T Get<T>(long id)
+            {
+                return _baseWrapper.Get<T>(id);
+            }
 
-            public override T Get<T>() => _baseWrapper.Get<T>();
+            public override T Get<T>()
+            {
+                return _baseWrapper.Get<T>();
+            }
 
-            public override IEnumerable<T> GetAll<T>() => _baseWrapper.GetAll<T>();
+            public override IEnumerable<T> GetAll<T>()
+            {
+                return _baseWrapper.GetAll<T>();
+            }
 
-            public override T GetByName<T>(string name) => _baseWrapper.GetByName<T>(name);
+            public override T GetByName<T>(string name)
+            {
+                return _baseWrapper.GetByName<T>(name);
+            }
 
             public override T GetByLink<T>(string name) where T : class
             {
@@ -285,7 +295,7 @@ namespace TimetableLib.DataAccess
                 };
                 command.Parameters.Add(new SqlParameter("@Link", name));
 
-                T record = new T();
+                var record = new T();
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
@@ -295,20 +305,14 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
                     if (sqlData.HasRows)
-                    {
                         while (sqlData.Read())
-                        {
                             foreach (var property in properties)
                             {
                                 var value = sqlData.GetValue(property.Name);
                                 property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                             }
-                        }
-                    }
                     else
-                    {
                         return null;
-                    }
                 }
 
                 return record;
@@ -316,15 +320,15 @@ namespace TimetableLib.DataAccess
 
             public override IEnumerable<TimetableDayDB> GetTDaysByTId(long timetableId)
             {
-                var command = new SqlCommand($"dbo.spTimetableDay_GetByTimetableId")
+                var command = new SqlCommand("dbo.spTimetableDay_GetByTimetableId")
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
                 command.Parameters.Add(new SqlParameter("@TimetableId", timetableId));
 
-                TimetableDayDB record = new TimetableDayDB();
-                List<TimetableDayDB> records = new List<TimetableDayDB>();
+                var record = new TimetableDayDB();
+                var records = new List<TimetableDayDB>();
 
 
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
@@ -336,7 +340,6 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var sqlData = command.ExecuteReader();
                     if (sqlData.HasRows)
-                    {
                         while (sqlData.Read())
                         {
                             record = new TimetableDayDB();
@@ -345,13 +348,11 @@ namespace TimetableLib.DataAccess
                                 var value = sqlData.GetValue(property.Name);
                                 property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                             }
+
                             records.Add(record);
                         }
-                    }
                     else
-                    {
                         return Enumerable.Empty<TimetableDayDB>();
-                    }
                 }
 
                 return records;
@@ -359,14 +360,14 @@ namespace TimetableLib.DataAccess
 
             public override IEnumerable<LessonDB> GetLessonsByTDayId(long tDayId)
             {
-                var command = new SqlCommand($"dbo.spLesson_GetByTimetableDayId")
+                var command = new SqlCommand("dbo.spLesson_GetByTimetableDayId")
                 {
                     CommandType = CommandType.StoredProcedure
                 };
                 command.Parameters.Add(new SqlParameter("@TimetableDayId", tDayId));
 
-                LessonDB record = new LessonDB();
-                List<LessonDB> records = new List<LessonDB>();
+                var record = new LessonDB();
+                var records = new List<LessonDB>();
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
@@ -376,7 +377,6 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var sqlData = command.ExecuteReader();
                     if (sqlData.HasRows)
-                    {
                         while (sqlData.Read())
                         {
                             record = new LessonDB();
@@ -385,13 +385,11 @@ namespace TimetableLib.DataAccess
                                 var value = sqlData.GetValue(property.Name);
                                 property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                             }
+
                             records.Add(record);
                         }
-                    }
                     else
-                    {
                         return Enumerable.Empty<LessonDB>();
-                    }
                 }
 
                 return records;
@@ -400,27 +398,49 @@ namespace TimetableLib.DataAccess
 
         private class SqlChangesWrapper : ChangesAccess
         {
-            private readonly string _connectionString;
             private readonly SqlBaseWrapper _baseWrapper;
+            private readonly string _connectionString;
+
             public SqlChangesWrapper(string connectionString)
             {
                 _connectionString = connectionString;
                 _baseWrapper = new SqlBaseWrapper(connectionString);
             }
 
-            public override void Update<T>(long id, T record) => _baseWrapper.Update<T>(id, record);
+            public override void Update<T>(long id, T record)
+            {
+                _baseWrapper.Update(id, record);
+            }
 
-            public override long Create<T>(T record) => _baseWrapper.Create<T>(record);
+            public override long Create<T>(T record)
+            {
+                return _baseWrapper.Create(record);
+            }
 
-            public override void Delete<T>(long id) => _baseWrapper.Delete<T>(id);
+            public override void Delete<T>(long id)
+            {
+                _baseWrapper.Delete<T>(id);
+            }
 
-            public override T Get<T>(long id) => _baseWrapper.Get<T>(id);
+            public override T Get<T>(long id)
+            {
+                return _baseWrapper.Get<T>(id);
+            }
 
-            public override T Get<T>() => _baseWrapper.Get<T>();
+            public override T Get<T>()
+            {
+                return _baseWrapper.Get<T>();
+            }
 
-            public override T GetByName<T>(string name) => _baseWrapper.GetByName<T>(name);
+            public override T GetByName<T>(string name)
+            {
+                return _baseWrapper.GetByName<T>(name);
+            }
 
-            public override IEnumerable<T> GetAll<T>() => _baseWrapper.GetAll<T>();
+            public override IEnumerable<T> GetAll<T>()
+            {
+                return _baseWrapper.GetAll<T>();
+            }
 
             public override IEnumerable<T> GetByDate<T>(DateTime date)
             {
@@ -430,9 +450,10 @@ namespace TimetableLib.DataAccess
                 };
                 command.Parameters.Add(new SqlParameter("@Date", date.Date));
 
-                T record = new T();
-                List<T> records = new List<T>();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+                var record = new T();
+                var records = new List<T>();
+                var properties = record.GetType().GetProperties().Where(x =>
+                    x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -441,7 +462,6 @@ namespace TimetableLib.DataAccess
                     connection.Open();
                     var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
                     if (sqlData.HasRows)
-                    {
                         while (sqlData.Read())
                         {
                             record = new T();
@@ -450,13 +470,11 @@ namespace TimetableLib.DataAccess
                                 var value = sqlData.GetValue(property.Name);
                                 property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
                             }
+
                             records.Add(record);
                         }
-                    }
                     else
-                    {
                         return Enumerable.Empty<T>();
-                    }
                 }
 
                 return records;
@@ -464,7 +482,7 @@ namespace TimetableLib.DataAccess
 
             public override long? GetLessonId(long teacherId, byte lessonNumber, DayOfWeek day)
             {
-                var command = new SqlCommand($"dbo.spLesson_GetByTeacherId")
+                var command = new SqlCommand("dbo.spLesson_GetByTeacherId")
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -472,7 +490,8 @@ namespace TimetableLib.DataAccess
                 command.Parameters.Add(new SqlParameter("@LessonNumber", lessonNumber));
                 command.Parameters.Add(new SqlParameter("@Day", day));
 
-                var properties = typeof(LessonDB).GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+                var properties = typeof(LessonDB).GetProperties().Where(x =>
+                    x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -483,29 +502,14 @@ namespace TimetableLib.DataAccess
                     long? id = null;
                     if (sqlData.HasRows)
                     {
-                        while (sqlData.Read())
-                        {
-                            id = (long)sqlData[0];
-                        }
+                        while (sqlData.Read()) id = (long) sqlData[0];
 
                         return id;
                     }
-                    else
-                    {
-                        return null;
-                    }
+
+                    return null;
                 }
             }
         }
-
-        private static bool IsDbProperty(PropertyInfo property)
-        {
-           return Attribute.IsDefined(property, typeof(SqlTypeAttribute));
-        }
     }
-
-
-
-
-
 }

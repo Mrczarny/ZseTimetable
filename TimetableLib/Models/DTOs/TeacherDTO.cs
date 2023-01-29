@@ -10,10 +10,10 @@ namespace TimetableLib.Models.DTOs
             Name = tr.Name;
             ShortName = tr.ShortName;
         }
+
         public long Id { get; set; }
         public string Name { get; set; }
         public string ShortName { get; set; }
         public TimetableDTO Timetable { get; set; }
-
     }
 }

@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
+﻿using System.Data;
 using TimetableLib.Models.DBModels.DBAttributes;
-using TimetableLib.Models.DTOs;
 using TimetableLib.Models.ScrapperModels;
 
 namespace TimetableLib.Models.DBModels
 {
     public class ClassroomDB : ITimetables
     {
-        public ClassroomDB(){}
+        public ClassroomDB()
+        {
+        }
+
         public ClassroomDB(Classroom cr)
         {
             Name = cr.Name;
@@ -18,21 +17,17 @@ namespace TimetableLib.Models.DBModels
             Link = cr.Link;
         }
 
-        [Identity]
-        [SqlType(SqlDbType.BigInt)]
-        public long? Id { get; set; }
+        [SqlType(SqlDbType.SmallInt)] public short Number { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
-        public string Name { get; set; }
+        [SqlType(SqlDbType.NVarChar)] public string TimetableLink { get; set; }
 
-        [SqlType(SqlDbType.SmallInt)]
-        public short Number { get; set; }
+        [Identity] [SqlType(SqlDbType.BigInt)] public long? Id { get; set; }
 
-        [SqlType(SqlDbType.BigInt)]
-        public long TimetableId { get; set; }
+        [SqlType(SqlDbType.NVarChar)] public string Name { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
-        public string Link { get; set; }
+        [SqlType(SqlDbType.BigInt)] public long TimetableId { get; set; }
+
+        [SqlType(SqlDbType.NVarChar)] public string Link { get; set; }
 
         public void SetLessonId(LessonDB ls)
         {
@@ -44,15 +39,18 @@ namespace TimetableLib.Models.DBModels
             ls.ClassroomName = Name;
         }
 
-        public string? GetLessonLink(LessonDB ls) => ls?.ClassroomLink;
+        public string? GetLessonLink(LessonDB ls)
+        {
+            return ls?.ClassroomLink;
+        }
 
-        public string? GetLessonName(LessonDB ls) => ls?.ClassroomName;
+        public string? GetLessonName(LessonDB ls)
+        {
+            return ls?.ClassroomName;
+        }
 
 
         public TimetableDB Timetable { get; set; }
-
-        [SqlType(SqlDbType.NVarChar)]
-        public string TimetableLink { get; set; }
 
         public void Dispose()
         {
@@ -61,8 +59,6 @@ namespace TimetableLib.Models.DBModels
             Link = null;
             Name = null;
             TimetableLink = null;
-
         }
-
     }
 }

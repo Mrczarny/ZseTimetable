@@ -11,10 +11,10 @@ namespace TimetableLib.Models.DTOs
             Number = cr.Number;
             Timetable = new TimetableDTO(cr.Timetable);
         }
+
         public long Id { get; set; }
         public string Name { get; set; }
         public short Number { get; set; }
         public TimetableDTO Timetable { get; set; }
-
     }
 }

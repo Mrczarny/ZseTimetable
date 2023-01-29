@@ -45,21 +45,25 @@ namespace ZseTimetable.Services
 
         private async void DoWork(object? state)
         {
+            _logger.LogInformation("Starting replacements upload...");
             await using (_scrapper = new ChangesScrapper(_config.GetSection(ScrapperOption.Position)
                              .GetSection("Changes")
                              .GetChildren().Select(x => x.Get<ScrapperOption>())))
             {
                 await DatabaseUpload(_db.GetDBModels<ReplacementDB>(GetAllReplacements()));
             }
+            _logger.LogInformation("Replacements upload completed!");
         }
 
         private async Task DatabaseUpload(IAsyncEnumerable<ReplacementDB> DbModels)
         {
             await foreach (var dbModel in DbModels)
             {
+                
                 var records = _db.GetByDate<ReplacementDB>(DateTime.Today);
                 if (records != null)
                 {
+                    _logger.LogInformation($"Updating replacement of {dbModel.TeacherName} for {dbModel.ClassName}...");
                     CreateMissing(records, dbModel);
                 }
                 else
@@ -67,6 +71,7 @@ namespace ZseTimetable.Services
                     FillNewReplacement(dbModel);
                     if (dbModel.LessonId != null)
                     {
+                        _logger.LogInformation($"Creating replacement of {dbModel.TeacherName} for {dbModel.ClassName}...");
                         _db.Create(dbModel);
                     }
                 }
@@ -80,14 +85,32 @@ namespace ZseTimetable.Services
             {
                 if (record.LessonId == dbModel.LessonId)
                 {
+                    try
+                    {
+                        _db.Update((long)record.Id, dbModel);
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
                     return;
+
                 }
             }
-            FillNewReplacement(dbModel);
-            if (dbModel.LessonId != null)
+
+            try
             {
-                _db.Create(dbModel);
+                FillNewReplacement(dbModel);
+                if (dbModel.LessonId != null)
+                {
+                    _db.Create(dbModel);
+                }
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error while trying to create replacement of {dbModel.TeacherName} for {dbModel.ClassName}!");
+            }
+
         }
 
         private void FillNewReplacement(ReplacementDB rp)  
@@ -105,6 +128,7 @@ namespace ZseTimetable.Services
             using (var rawChanges = await _client.GetStreamAsync($"https://zastepstwa.zse.bydgoszcz.pl"))
             {
                 var spChanges = _scrapper.Scrap(await new StreamReader(rawChanges,Encoding.GetEncoding("iso-8859-2")).ReadToEndAsync());
+
                 foreach (var tReplacement in spChanges.Replacements)
                 {
                     foreach (var lReplacement in tReplacement.ClassReplacements)

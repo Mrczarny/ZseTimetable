@@ -58,104 +58,166 @@ namespace ZseTimetable.Services
 
         private async void DoWork(object? state)
         {
-            await using (_scrapper = new TimetableScrapper(_config.GetSection(ScrapperOption.Position)
-                       .GetSection("Timetable")
-                       .GetChildren().Select(x => x.Get<ScrapperOption>())))
+            _logger.LogInformation("Starting timetables upload...");
+            //_db.BeginTransaction("Timetables");
+            try
             {
-               await DatabaseUpload(
-                    _db.GetDBModels<ClassDB>(
-                        GetTimetable<Class>(
-                            TimetablesTypes.First(x => x.type == typeof(Class).Name).letter)));
+                await using (_scrapper = new TimetableScrapper(_config.GetSection(ScrapperOption.Position)
+                                 .GetSection("Timetable")
+                                 .GetChildren().Select(x => x.Get<ScrapperOption>())))
+                {
+                    await DatabaseUpload(
+                        _db.GetDBModels<ClassDB>(
+                            GetTimetable<Class>(
+                                TimetablesTypes.First(x => x.type == typeof(Class).Name).letter)));
 
-                await DatabaseUpload(
-                    _db.GetDBModels<ClassroomDB>(
-                        GetTimetable<Classroom>(
-                            TimetablesTypes.First(x => x.type == typeof(Classroom).Name).letter)));
+                    await DatabaseUpload(
+                        _db.GetDBModels<ClassroomDB>(
+                            GetTimetable<Classroom>(
+                                TimetablesTypes.First(x => x.type == typeof(Classroom).Name).letter)));
 
-               await DatabaseUpload(
-                    _db.GetDBModels<TeacherDB>(
-                        GetTimetable<Teacher>(
-                            TimetablesTypes.First(x => x.type == typeof(Teacher).Name).letter)));
+                    await DatabaseUpload(
+                        _db.GetDBModels<TeacherDB>(
+                            GetTimetable<Teacher>(
+                                TimetablesTypes.First(x => x.type == typeof(Teacher).Name).letter)));
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                //_db.CancelTransaction("Timetables");
+                throw;
+            }
+            _logger.LogInformation("Timetables upload completed!");
+            // _db.EndTransaction("Timetables");
+
         }
 
-        
         private async Task DatabaseUpload<T>(IAsyncEnumerable<T> dbModels) where T : class,ITimetables, new()
         {
             await foreach (var dbModel in dbModels)
             {
+               
                 try
                 {
                     var record = _db.GetByName<T>(dbModel.Name);
 
                     if (record != null)
                     {
-                        _db.FillITimetablesModel(record);
-                        dbModel.TimetableId = record.TimetableId;
-                        _db.Update((long)record.Id, dbModel);
-                        _db.Update(record.TimetableId, dbModel.Timetable);
-                        foreach (var DbDay in dbModel.Timetable.Days)
+                        _logger.LogInformation($"Updating {dbModel.GetType().Name}: {dbModel.Name}...");
+                        try
                         {
-                            var day = record.Timetable.Days.Single(x => x.Day == DbDay.Day);
-                            DbDay.TimetableId = record.TimetableId;
-                            DbDay.Id = day.Id;
-                            _db.Update((long)day.Id, DbDay);
-                            foreach (var DbLesson in DbDay.Lessons)
+                            _db.FillITimetablesModel(record);
+                            dbModel.TimetableId = record.TimetableId;
+                            _db.Update((long)record.Id, dbModel);
+                            _db.Update(record.TimetableId, dbModel.Timetable);
+                            foreach (var DbDay in dbModel.Timetable.Days)
                             {
-                                var matchingLesson = day.Lessons?.FirstOrDefault(x => x.Number == DbLesson.Number && x.Group == DbLesson.Group);
-                                if (matchingLesson != null)
+                                var day = record.Timetable.Days.Single(x => x.Day == DbDay.Day);
+                                DbDay.TimetableId = record.TimetableId;
+                                DbDay.Id = day.Id;
+                                _db.Update((long)day.Id, DbDay);
+                                foreach (var DbLesson in DbDay.Lessons)
                                 {
-                                    dbModel.SetLessonId(DbLesson);
-                                    dbModel.SetLessonName(DbLesson);
-                                    //_db.Update((long)matchingLesson.Id, DbLesson);
-                                    UpdateLesson((long)matchingLesson.Id, DbLesson);
-                                    day.Lessons.Remove(matchingLesson); // TODO - Becouse of this one line TimetableDay.Lessons has to be list
-                                }
-                                else
-                                {
-                                    dbModel.SetLessonId(DbLesson);
-                                    dbModel.SetLessonName(DbLesson);
-
-                                    CreateLesson(DbLesson, DbDay);
-                                }
-
-                                 
-                            }
-
-                            if (day.Lessons != null)
-                                foreach (var lesson in day.Lessons)
-                                {
-                                    foreach (var dayLesson in _db.GetAll<TimetableDayLessonDB>()
-                                                 .Where(x => x.LessonId == lesson.Id))
+                                    var matchingLesson = day.Lessons?.FirstOrDefault(x => x.Number == DbLesson.Number && x.Group == DbLesson.Group);
+                                    if (matchingLesson != null)
                                     {
-                                        _db.Delete<TimetableDayLessonDB>((long) dayLesson.Id);
+                                        dbModel.SetLessonId(DbLesson);
+                                        dbModel.SetLessonName(DbLesson);
+                                        //_db.Update((long)matchingLesson.Id, DbLesson);
+                                        UpdateLesson((long)matchingLesson.Id, DbLesson);
+                                        day.Lessons.Remove(matchingLesson); //Because of this one line TimetableDay.Lessons has to be list
+                                    }
+                                    else
+                                    {
+                                        dbModel.SetLessonId(DbLesson);
+                                        dbModel.SetLessonName(DbLesson);
+
+                                        CreateLesson(DbLesson, DbDay);
                                     }
 
-                                    _db.Delete<LessonDB>((long) lesson.Id);
+
                                 }
+
+                                if (day.Lessons != null)
+                                    foreach (var lesson in day.Lessons)
+                                    {
+                                        foreach (var dayLesson in _db.GetAll<TimetableDayLessonDB>()
+                                                     .Where(x => x.LessonId == lesson.Id))
+                                        {
+                                            _db.Delete<TimetableDayLessonDB>((long)dayLesson.Id);
+                                        }
+
+                                        _db.Delete<LessonDB>((long)lesson.Id);
+                                    }
+                            }
+                            _logger.LogInformation($"{dbModel.GetType().Name}: {dbModel.Name} updated!");
                         }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e, $"Error while trying to update {dbModel.GetType().Name}: {dbModel.Name}");
+                            if (record.TimetableId != null)
+                            {
+                                foreach (var day in _db.GetTDaysByTId(record.TimetableId))
+                                {
+                                    foreach (var lesson in _db.GetLessonsByTDayId((long)day.Id))
+                                    {
+                                        _db.Delete<LessonDB>((long)lesson.Id);
+
+                                    }
+                                    _db.Delete<TimetableDayDB>((long)day.Id);
+                                }
+                                _db.Delete<TimetableDB>(record.TimetableId);
+                                _db.Delete<T>((long)record.Id);
+                            }
+                        }
+                        
+
                     }
                     else
                     {
-                        dbModel.TimetableId = _db.Create(dbModel.Timetable);
-                        dbModel.Id = _db.Create(dbModel);
-                        foreach (var day in dbModel.Timetable.Days)
+                        _logger.LogInformation($"Creating {dbModel.GetType().Name}: {dbModel.Name}...");
+                        try
                         {
-                            day.TimetableId = dbModel.TimetableId;
-                            day.Id = _db.Create(day);
-                            foreach (var lesson in day.Lessons)
+                            dbModel.TimetableId = _db.Create(dbModel.Timetable);
+                            dbModel.Id = _db.Create(dbModel);
+                            foreach (var day in dbModel.Timetable.Days)
                             {
-                                dbModel.SetLessonId(lesson);
-                                dbModel.SetLessonName(lesson);
-                                //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
-                                //    .SetValue(lesson, dbModel.Name);
-                                //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
-                                //    .SetValue(lesson, dbModel.Id); 
+                                day.TimetableId = dbModel.TimetableId;
+                                day.Id = _db.Create(day);
+                                foreach (var lesson in day.Lessons)
+                                {
+                                    dbModel.SetLessonId(lesson);
+                                    dbModel.SetLessonName(lesson);
+                                    //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Name")
+                                    //    .SetValue(lesson, dbModel.Name);
+                                    //lesson.GetType().GetProperty(dbModel.GetType().Name[..^2] + "Id")
+                                    //    .SetValue(lesson, dbModel.Id); 
 
-                                CreateLesson(lesson, day);
-                                
+                                    CreateLesson(lesson, day);
+                                }
+                            }
+                            _logger.LogInformation($"{dbModel.GetType().Name}: {dbModel.Name} created!");
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e, $"Error while trying to create {dbModel.GetType().Name}: {dbModel.Name}");
+                            if (dbModel.TimetableId != null)
+                            {
+                                foreach (var day in _db.GetTDaysByTId(dbModel.TimetableId))
+                                {
+                                    foreach (var lesson in _db.GetLessonsByTDayId((long)day.Id))
+                                    {
+                                        _db.Delete<LessonDB>((long)lesson.Id);
+
+                                    }
+                                    _db.Delete<TimetableDayDB>((long)day.Id);
+                                }
+                                _db.Delete<TimetableDB>(dbModel.TimetableId);
+                                _db.Delete<T>((long)dbModel.Id);
                             }
                         }
+                        
                     }
 
                     
@@ -163,11 +225,10 @@ namespace ZseTimetable.Services
                 catch (Exception e)
                 {
                     _logger.LogError(e.Message);
+                    
                     throw;
                 }
             }
-
-            dbModels = null;
         }
 
         private void UpdateLesson(long oldLessonId, LessonDB newLesson)
@@ -295,7 +356,6 @@ namespace ZseTimetable.Services
             return null;
 
         }
-
 
         private async  IAsyncEnumerable<T> GetTimetable<T>(char letter) where T : IScrappable, new()
         {

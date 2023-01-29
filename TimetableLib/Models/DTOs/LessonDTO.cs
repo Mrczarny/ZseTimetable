@@ -29,7 +29,7 @@ namespace TimetableLib.Models.DTOs
         public string? TeacherName { get; set; }
         public long? ClassroomId { get; set; }
         public string? ClassroomName { get; set; }
-        public bool IsAReplacement { get; set; } = false;
+        //public bool IsAReplacement { get; set; } = false;
 
     }
 }

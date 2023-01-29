@@ -19,6 +19,7 @@ namespace TimetableLib.Models.DBModels
             ClassroomName = lr.ClassroomName;
             Group = lr.Group;
             LessonNumber = lr.LessonNumber;
+            Note = lr.Note;
 
         }
 

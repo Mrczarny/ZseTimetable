@@ -85,7 +85,6 @@ namespace ZseTimetable
         {
             var trMatch = _dic[nameof(Scrap)].Match(rawHtml);
             // new Regex(@"<nobr>(?<replacementHeader>.*?(?<replacementDate>\d{1,2}\.\d{1,2}\.\d{4}).*?)</nobr>.*?(?<replacements><tr>.*</tr>)", RegexOptions.Compiled | RegexOptions.Singleline)
-
             var d = new DayReplacements()
             {
                 Date = DateTime.TryParse(trMatch.Groups["replacementDate"].Value, out DateTime date) ? date.Date : (DateTime?)null,

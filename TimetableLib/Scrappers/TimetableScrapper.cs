@@ -119,7 +119,7 @@ namespace ZseTimetable
         }
 
 
-        public async Task<Timetable> Scrap<T>(string rawHtml)
+        public async Task<Timetable> Scrap<T>(string rawHtml) //TODO: should return T
         {
             
             var rawBodyMatch = _dic[nameof(Scrap)].Match(rawHtml); 

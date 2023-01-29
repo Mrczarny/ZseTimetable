@@ -23,7 +23,6 @@ namespace TimetableLib.DataAccess
             _connectionString = connectionString;
         }
 
-
         private class SqlBaseWrapper : DbAccess
         {
             private readonly string _connectionString;
@@ -42,8 +41,7 @@ namespace TimetableLib.DataAccess
 
 
                 foreach (var property in record.GetType().GetProperties().
-                             Where(x => x.CustomAttributes.Any(y => y.AttributeType == typeof(SqlTypeAttribute)) &&
-                                        x.CustomAttributes.All(y => y.AttributeType != typeof(IdentityAttribute))))
+                             Where(x => IsDbProperty(x) && x.Name != "Id"))
                 {
                     var parameter = new SqlParameter
                     {
@@ -80,8 +78,7 @@ namespace TimetableLib.DataAccess
 
 
                 foreach (var property in record.GetType().GetProperties().
-                             Where(x => x.CustomAttributes.Any(y => y.AttributeType == typeof(SqlTypeAttribute)) &&
-                                                x.CustomAttributes.All(y => y.AttributeType != typeof(IdentityAttribute))))
+                             Where(x => IsDbProperty(x) && x.Name != "Id"))
                 {
                     var parameter = new SqlParameter
                     {
@@ -130,7 +127,7 @@ namespace TimetableLib.DataAccess
                 };
                 command.Parameters.Add(new SqlParameter("@Id", id));
                 T record = new T();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+                var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -168,7 +165,7 @@ namespace TimetableLib.DataAccess
                     record = command.ExecuteReader();
                 }
                 T result = new T();
-                foreach (var property in typeof(T).GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute))))
+                foreach (var property in typeof(T).GetProperties().Where(IsDbProperty))
                 {
                     var value = record.GetValue(property.Name);
                     property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
@@ -186,7 +183,7 @@ namespace TimetableLib.DataAccess
                 command.Parameters.Add(new SqlParameter("@Name", name));
 
                 T record = new T();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+                var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -214,7 +211,7 @@ namespace TimetableLib.DataAccess
                 return record;
             }
 
-            public override IEnumerable<T>? GetAll<T>()
+            public override IEnumerable<T> GetAll<T>()
             {
                 var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetAll")
                 {
@@ -223,7 +220,7 @@ namespace TimetableLib.DataAccess
 
                 T record = new T();
                 List<T> records = new List<T>();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+                var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -246,7 +243,7 @@ namespace TimetableLib.DataAccess
                     }
                     else
                     {
-                        return null;
+                        return Enumerable.Empty<T>();
                     }
                 }
 
@@ -289,7 +286,7 @@ namespace TimetableLib.DataAccess
                 command.Parameters.Add(new SqlParameter("@Link", name));
 
                 T record = new T();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+                var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -328,7 +325,9 @@ namespace TimetableLib.DataAccess
 
                 TimetableDayDB record = new TimetableDayDB();
                 List<TimetableDayDB> records = new List<TimetableDayDB>();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+
+                var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -351,7 +350,7 @@ namespace TimetableLib.DataAccess
                     }
                     else
                     {
-                        return null;
+                        return Enumerable.Empty<TimetableDayDB>();
                     }
                 }
 
@@ -368,7 +367,7 @@ namespace TimetableLib.DataAccess
 
                 LessonDB record = new LessonDB();
                 List<LessonDB> records = new List<LessonDB>();
-                var properties = record.GetType().GetProperties().Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+                var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -391,7 +390,7 @@ namespace TimetableLib.DataAccess
                     }
                     else
                     {
-                        return null;
+                        return Enumerable.Empty<LessonDB>();
                     }
                 }
 
@@ -456,7 +455,7 @@ namespace TimetableLib.DataAccess
                     }
                     else
                     {
-                        return null;
+                        return Enumerable.Empty<T>();
                     }
                 }
 
@@ -497,6 +496,11 @@ namespace TimetableLib.DataAccess
                     }
                 }
             }
+        }
+
+        private static bool IsDbProperty(PropertyInfo property)
+        {
+           return Attribute.IsDefined(property, typeof(SqlTypeAttribute));
         }
     }
 

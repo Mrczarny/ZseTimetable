@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -80,7 +81,9 @@ namespace ZseTimetable.Controllers
                     _db.FillITimetablesModel(classLs);
 
                     foreach (var day in classLs.Timetable.Days)
-                    foreach (var dayLesson in day.Lessons)
+                    {
+                        foreach ( var dayLesson in day.Lessons)
+                        {
                         if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
                         {
                             var Classroom = _db.Get<ClassroomDB>((long) dayLesson.ClassroomId);
@@ -91,6 +94,8 @@ namespace ZseTimetable.Controllers
                             dayLesson.TeacherName = Teacher.Name;
                             dayLesson.ClassName = classLs.Name;
                         }
+                        }
+                    }
 
                     //var replacements =
                     //    _client.GetAsync($"{Request.Scheme}://{Request.Host}/Changes/Today");
@@ -99,8 +104,7 @@ namespace ZseTimetable.Controllers
 
                     //}
                     //returns DTO of timetable
-                    return new ClassDTO(classLs);
-                    ;
+                    return new ClassDTO(classLs); ;
                 }
 
 
@@ -108,7 +112,7 @@ namespace ZseTimetable.Controllers
                 _logger.LogInformation($"class {name} not found!");
                 return NotFound("Class not found");
             }
-            catch (HttpRequestException exception)
+            catch (Exception exception)
             {
                 _logger.LogCritical(exception, exception.Message);
                 return Problem("Sorry, we seem to have a problem.");
@@ -129,20 +133,22 @@ namespace ZseTimetable.Controllers
                     _db.FillITimetablesModel(classroomLs);
 
                     foreach (var day in classroomLs.Timetable.Days)
+                    {
                     foreach (var dayLesson in day.Lessons)
+                        {
                         if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
                         {
-                            var Class = _db.Get<ClassDB>((long) dayLesson.ClassId);
+                                var Class = _db.Get<ClassDB>((long)dayLesson.ClassId);
                             _db.FillITimetablesModel(Class);
-                            var Teacher = _db.Get<TeacherDB>((long) dayLesson.TeacherId);
+                                var Teacher = _db.Get<TeacherDB>((long)dayLesson.TeacherId);
                             _db.FillITimetablesModel(Teacher);
                             dayLesson.ClassroomName = Class.Name;
                             dayLesson.TeacherName = Teacher.Name;
                         }
-
+                        }
+                    }
                     //returns DTO of timetable
-                    return new ClassroomDTO(classroomLs);
-                    ;
+                    return new ClassroomDTO(classroomLs); ;
                 }
 
 
@@ -150,7 +156,7 @@ namespace ZseTimetable.Controllers
 
                 return NotFound("Classroom not found");
             }
-            catch (HttpRequestException exception)
+            catch (Exception exception)
             {
                 _logger.LogCritical(exception, exception.Message);
                 return Problem("Sorry, we seem to have a problem.");
@@ -170,7 +176,9 @@ namespace ZseTimetable.Controllers
                     _db.FillITimetablesModel(TeacherLs);
 
                     foreach (var day in TeacherLs.Timetable.Days)
+                    {
                     foreach (var dayLesson in day.Lessons)
+                        {
                         if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
                         {
                             var Class = _db.Get<ClassDB>((long) dayLesson.ClassId);
@@ -180,10 +188,10 @@ namespace ZseTimetable.Controllers
                             dayLesson.ClassroomName = Class.Name;
                             dayLesson.TeacherName = Teacher.Name;
                         }
-
+                        }
+                    }
                     //returns DTO of timetable
-                    return new TeacherDTO(TeacherLs);
-                    ;
+                    return new TeacherDTO(TeacherLs); ;
                 }
 
 
@@ -191,7 +199,7 @@ namespace ZseTimetable.Controllers
 
                 return NotFound("Teacher not found");
             }
-            catch (HttpRequestException exception)
+            catch (Exception exception)
             {
                 _logger.LogCritical(exception, exception.Message);
                 return Problem("Sorry, we seem to have a problem.");

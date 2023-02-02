@@ -24,11 +24,14 @@ namespace TimetableLib.DBAccess
             record.Timetable = Get<TimetableDB>(record.TimetableId);
             record.Timetable.Days = GetTDaysByTId(record.TimetableId);
 
-            foreach (var day in record.Timetable.Days) day.Lessons = GetLessonsByTDayId((long) day.Id)?.ToList();
+            foreach (var day in record.Timetable.Days)
+            {
+                day.Lessons = this.GetLessonsByTDayId((long)day.Id)?.ToList();
             //day.Lessons = (from dayLessonDb in dayLessons
             //               join lessonDb in Lessons on dayLessonDb.LessonId equals
             //                   lessonDb.Id //
             //               select lessonDb ).ToList(); 
+            }
         }
     }
 }

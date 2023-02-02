@@ -171,13 +171,15 @@ namespace ZseTimetable.Services
                             {
                                 foreach (var day in _db.GetTDaysByTId(record.TimetableId))
                                 {
-                                    foreach (var lesson in _db.GetLessonsByTDayId((long) day.Id))
-                                        _db.Delete<LessonDB>((long) lesson.Id);
-                                    _db.Delete<TimetableDayDB>((long) day.Id);
-                                }
+                                    foreach (var lesson in _db.GetLessonsByTDayId((long)day.Id))
+                                    {
+                                        _db.Delete<LessonDB>((long)lesson.Id);
 
+                                }
+                                    _db.Delete<TimetableDayDB>((long)day.Id);
+                                }
                                 _db.Delete<TimetableDB>(record.TimetableId);
-                                _db.Delete<T>((long) record.Id);
+                                _db.Delete<T>((long)record.Id);
                             }
                         }
                     }
@@ -215,13 +217,15 @@ namespace ZseTimetable.Services
                             {
                                 foreach (var day in _db.GetTDaysByTId(dbModel.TimetableId))
                                 {
-                                    foreach (var lesson in _db.GetLessonsByTDayId((long) day.Id))
-                                        _db.Delete<LessonDB>((long) lesson.Id);
-                                    _db.Delete<TimetableDayDB>((long) day.Id);
-                                }
+                                    foreach (var lesson in _db.GetLessonsByTDayId((long)day.Id))
+                                    {
+                                        _db.Delete<LessonDB>((long)lesson.Id);
 
+                                }
+                                    _db.Delete<TimetableDayDB>((long)day.Id);
+                                }
                                 _db.Delete<TimetableDB>(dbModel.TimetableId);
-                                _db.Delete<T>((long) dbModel.Id);
+                                //_db.Delete<T>((long) dbModel.Id);
                             }
                         }
                     }
@@ -232,6 +236,7 @@ namespace ZseTimetable.Services
 
                     throw;
                 }
+        }
         }
 
         private void UpdateLesson(long oldLessonId, LessonDB newLesson)
@@ -269,6 +274,7 @@ namespace ZseTimetable.Services
                 //    LessonId = (long)matchingTeacherLesson.Id,
                 //    TimetableDayId = (long)day.Id
                 //});
+                return;
             }
         }
 
@@ -349,9 +355,12 @@ namespace ZseTimetable.Services
             {
                 var match = day.Lessons?.Find(x => x.Number == lesson.Number
                                                    && x.Name == lesson.Name && x.Group == lesson.Group);
-                if (match != null) return match;
+                if (match != null)
+                {
+                    return match;
             }
 
+            }
             return null;
         }
 

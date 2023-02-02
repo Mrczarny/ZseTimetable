@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TimetableLib.Changes;
 using TimetableLib.DataAccess;
 using TimetableLib.Models.DBModels;
+using TimetableLib.Models.Replacements;
 using TimetableLib.Models.ScrapperModels;
 
 namespace ZseTimetable.Services
@@ -97,6 +99,7 @@ namespace ZseTimetable.Services
         private void CreateMissing(IEnumerable<ReplacementDB> records, ReplacementDB dbModel)
         {
             foreach (var record in records)
+            {
                 if (record.LessonId == dbModel.LessonId)
                 {
                     try
@@ -109,11 +112,15 @@ namespace ZseTimetable.Services
 
                     return;
                 }
+            }
 
             try
             {
                 FillNewReplacement(dbModel);
-                if (dbModel.LessonId != null) _db.Create(dbModel);
+                if (dbModel.LessonId != null)
+                {
+                    _db.Create(dbModel);
+                }
             }
             catch (Exception e)
             {
@@ -133,16 +140,28 @@ namespace ZseTimetable.Services
 
         private async IAsyncEnumerable<IPersist> GetAllReplacements()
         {
-            using (var rawChanges = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl"))
+            DayReplacements spChanges ;
+            try
             {
-                var spChanges =
+                await using var rawChanges = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl");
+                spChanges =
                     _scrapper.Scrap(await new StreamReader(rawChanges, Encoding.GetEncoding("iso-8859-2"))
                         .ReadToEndAsync());
-
-                foreach (var tReplacement in spChanges.Replacements)
-                foreach (var lReplacement in tReplacement.ClassReplacements)
-                    yield return lReplacement;
             }
+            catch (Exception e)
+            {
+                spChanges = new DayReplacements
+                {
+                    Replacements = Enumerable.Empty<TeacherReplacements>()
+                };
+                _logger.LogError(e,
+                    $"Error while trying to get replacements from {"https://zastepstwa.zse.bydgoszcz.pl"}");
+
+            }
+            foreach (var tReplacement in spChanges.Replacements)
+            foreach (var lReplacement in tReplacement.ClassReplacements)
+                yield return lReplacement;
+
         }
     }
 }

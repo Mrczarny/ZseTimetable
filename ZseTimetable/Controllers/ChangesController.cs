@@ -48,7 +48,7 @@ namespace ZseTimetable.Controllers
 
                 return replacements;
             }
-            catch (HttpRequestException exception)
+            catch (Exception exception)
             {
                 _logger.LogCritical(exception, exception.Message);
                 return Problem("Sorry, we seem to have a problem.");
@@ -66,7 +66,7 @@ namespace ZseTimetable.Controllers
 
                 return replacements;
             }
-            catch (HttpRequestException exception)
+            catch (Exception exception)
             {
                 _logger.LogCritical(exception, exception.Message);
                 return Problem("Sorry, we seem to have a problem.");

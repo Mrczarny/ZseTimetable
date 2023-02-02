@@ -12,15 +12,13 @@ namespace TimetableLib.Models.DBModels
     {
         public long? Id { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
-        public string Name { get; set; }
+        [SqlType(SqlDbType.NVarChar)] public string Name { get; set; }
+
         public TimetableDB Timetable { get; set; }
 
-        [SqlType(SqlDbType.BigInt)]
-        public long TimetableId { get; set; }
+        [SqlType(SqlDbType.BigInt)] public long TimetableId { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)]
-        public string Link { get; set; }
+        [SqlType(SqlDbType.NVarChar)] public string Link { get; set; }
 
         public void SetLessonId(LessonDB ls);
 

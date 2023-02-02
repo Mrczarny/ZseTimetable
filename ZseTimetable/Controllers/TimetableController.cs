@@ -104,7 +104,8 @@ namespace ZseTimetable.Controllers
 
                     //}
                     //returns DTO of timetable
-                    return new ClassDTO(classLs); ;
+                    return new ClassDTO(classLs);
+                    ;
                 }
 
 
@@ -148,7 +149,8 @@ namespace ZseTimetable.Controllers
                         }
                     }
                     //returns DTO of timetable
-                    return new ClassroomDTO(classroomLs); ;
+                    return new ClassroomDTO(classroomLs);
+                    ;
                 }
 
 
@@ -191,7 +193,8 @@ namespace ZseTimetable.Controllers
                         }
                     }
                     //returns DTO of timetable
-                    return new TeacherDTO(TeacherLs); ;
+                    return new TeacherDTO(TeacherLs);
+                    ;
                 }
 
 

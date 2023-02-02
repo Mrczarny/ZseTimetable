@@ -43,11 +43,8 @@ namespace ZseTimetable.Controllers
             try
             {
                 var dbReplacements = _db.GetByDate<ReplacementDB>(DateTime.Today);
-                List<ReplacementDTO> replacements = new List<ReplacementDTO>();
-                foreach (var rp in dbReplacements)
-                {
-                    replacements.Add(new ReplacementDTO(rp));
-                }
+                var replacements = new List<ReplacementDTO>();
+                foreach (var rp in dbReplacements) replacements.Add(new ReplacementDTO(rp));
 
                 return replacements;
             }
@@ -64,11 +61,8 @@ namespace ZseTimetable.Controllers
             try
             {
                 var dbReplacements = _db.GetByDate<ReplacementDB>(date);
-                List<ReplacementDTO> replacements = new List<ReplacementDTO>();
-                foreach (var rp in dbReplacements)
-                {
-                    replacements.Add(new ReplacementDTO(rp));
-                }
+                var replacements = new List<ReplacementDTO>();
+                foreach (var rp in dbReplacements) replacements.Add(new ReplacementDTO(rp));
 
                 return replacements;
             }

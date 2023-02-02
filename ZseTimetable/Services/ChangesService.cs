@@ -99,7 +99,6 @@ namespace ZseTimetable.Services
         private void CreateMissing(IEnumerable<ReplacementDB> records, ReplacementDB dbModel)
         {
             foreach (var record in records)
-            {
                 if (record.LessonId == dbModel.LessonId)
                 {
                     try
@@ -117,10 +116,7 @@ namespace ZseTimetable.Services
             try
             {
                 FillNewReplacement(dbModel);
-                if (dbModel.LessonId != null)
-                {
-                    _db.Create(dbModel);
-                }
+                if (dbModel.LessonId != null) _db.Create(dbModel);
             }
             catch (Exception e)
             {

@@ -151,7 +151,6 @@ namespace TimetableLib.DataAccess
                     }
                     else
                     {
-                        connection.Close();
                         return null;
                     }
                 }

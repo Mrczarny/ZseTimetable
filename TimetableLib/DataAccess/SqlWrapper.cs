@@ -23,10 +23,6 @@ namespace TimetableLib.DataAccess
         public ChangesAccess ChangesAccess => new SqlChangesWrapper(_connectionString);
         public DbAccess DbAccess => new SqlBaseWrapper(_connectionString);
 
-        private static bool IsDbProperty(PropertyInfo property)
-        {
-            return Attribute.IsDefined(property, typeof(SqlTypeAttribute));
-        }
 
         private class SqlBaseWrapper : DbAccess
         {
@@ -506,16 +502,6 @@ namespace TimetableLib.DataAccess
                     }
                 }
             }
-        }
-
-        private static bool IsDbProperty(PropertyInfo property)
-        {
-           return Attribute.IsDefined(property, typeof(SqlTypeAttribute));
-        }
-
-        private static bool IsDbProperty(PropertyInfo property)
-        {
-           return Attribute.IsDefined(property, typeof(SqlTypeAttribute));
         }
 
         private static bool IsDbProperty(PropertyInfo property)

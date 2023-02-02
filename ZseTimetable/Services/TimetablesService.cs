@@ -174,8 +174,7 @@ namespace ZseTimetable.Services
                                     foreach (var lesson in _db.GetLessonsByTDayId((long)day.Id))
                                     {
                                         _db.Delete<LessonDB>((long)lesson.Id);
-
-                                }
+                                    }
                                     _db.Delete<TimetableDayDB>((long)day.Id);
                                 }
                                 _db.Delete<TimetableDB>(record.TimetableId);
@@ -237,7 +236,7 @@ namespace ZseTimetable.Services
                     throw;
                 }
         }
-        }
+
 
         private void UpdateLesson(long oldLessonId, LessonDB newLesson)
         {
@@ -358,7 +357,7 @@ namespace ZseTimetable.Services
                 if (match != null)
                 {
                     return match;
-            }
+                }
 
             }
             return null;

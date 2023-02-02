@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using TimetableLib.Models.DBModels.DBAttributes;
-using TimetableLib.Models.DTOs;
 using TimetableLib.Models.ScrapperModels;
 
 namespace TimetableLib.Models.DBModels
 {
-    public class ClassDB :  ITimetables, IDisposable
+    public class ClassDB : ITimetables, IDisposable
     {
         public ClassDB(){}
         public ClassDB(Class cl)
@@ -16,7 +13,6 @@ namespace TimetableLib.Models.DBModels
             Name = cl.Name;
             Timetable = new TimetableDB(cl.Timetable);
             Link = cl.Link;
-            
         }
 
         [Identity]
@@ -56,7 +52,6 @@ namespace TimetableLib.Models.DBModels
             Link = null;
             Name = null;
             TimetableLink = null;
-
         }
     }
 }

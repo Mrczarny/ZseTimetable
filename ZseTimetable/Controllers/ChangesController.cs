@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TimetableLib.DataAccess;
-using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.DTOs;
-using TimetableLib.Models.Replacements;
-using TimetableLib.Models.ScrapperModels;
 
 namespace ZseTimetable.Controllers
 {
@@ -22,9 +16,10 @@ namespace ZseTimetable.Controllers
     [ApiController]
     public class ChangesController : ControllerBase
     {
-        private readonly ILogger<ChangesController> _logger;
         private readonly HttpClient _client;
-        private ChangesAccess _db;
+        private readonly ILogger<ChangesController> _logger;
+
+        private readonly ChangesAccess _db;
         //private readonly ChangesScrapper _scrapper;
 
         public ChangesController(IConfiguration config, ILogger<ChangesController> logger, IHttpClientFactory client,
@@ -56,7 +51,7 @@ namespace ZseTimetable.Controllers
 
                 return replacements;
             }
-            catch (HttpRequestException exception)
+            catch (Exception exception)
             {
                 _logger.LogCritical(exception, exception.Message);
                 return Problem("Sorry, we seem to have a problem.");
@@ -77,7 +72,7 @@ namespace ZseTimetable.Controllers
 
                 return replacements;
             }
-            catch (HttpRequestException exception)
+            catch (Exception exception)
             {
                 _logger.LogCritical(exception, exception.Message);
                 return Problem("Sorry, we seem to have a problem.");
@@ -85,4 +80,3 @@ namespace ZseTimetable.Controllers
         }
     }
 }
-

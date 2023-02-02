@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
+﻿using System.Data;
 using TimetableLib.Models.DBModels.DBAttributes;
-using TimetableLib.Models.DTOs;
 using TimetableLib.Models.ScrapperModels;
 
 namespace TimetableLib.Models.DBModels
@@ -61,8 +57,6 @@ namespace TimetableLib.Models.DBModels
             Link = null;
             Name = null;
             TimetableLink = null;
-
         }
-
     }
 }

@@ -9,6 +9,7 @@ namespace TimetableLib.Models.DTOs
             Id = (long) rp.Id;
             Note = rp.Note;
         }
+
         public long Id { get; set; }
         public LessonDTO Lesson { get; set; }
         public string NewTeacherName { get; set; }

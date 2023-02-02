@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
+﻿using System.Data;
 using TimetableLib.Models.DBModels.DBAttributes;
-using TimetableLib.Models.DTOs;
 using TimetableLib.Timetables;
 
 namespace TimetableLib.Models.DBModels
@@ -14,15 +10,14 @@ namespace TimetableLib.Models.DBModels
         public LessonDB(Lesson ls)
         {
             Name = ls.LessonName;
-            Number = (byte)ls.LessonNumber;
-            Group = ls.Group; 
+            Number = (byte) ls.LessonNumber;
+            Group = ls.Group;
             ClassName = ls.ClassName;
             ClassLink = ls.ClassLink;
             ClassroomName = ls.ClassroomName;
             ClassroomLink = ls.ClassroomLink;
             TeacherName = ls.TeacherName;
             TeachereLink = ls.TeacherLink;
-
         }
 
         [Identity]

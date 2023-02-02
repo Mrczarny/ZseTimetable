@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using TimetableLib.Changes;
 using TimetableLib.Models.DBModels.DBAttributes;
-using TimetableLib.Models.DTOs;
 
 namespace TimetableLib.Models.DBModels
 {
@@ -20,7 +17,6 @@ namespace TimetableLib.Models.DBModels
             Group = lr.Group;
             LessonNumber = lr.LessonNumber;
             Note = lr.Note;
-
         }
 
         [Identity]
@@ -63,6 +59,6 @@ namespace TimetableLib.Models.DBModels
         //public LessonDB Lesson { get; set; }
         //public TeacherDB Teacher { get; set; }
         //public ClassroomDB Classroom { get; set; }
-       // public LessonDB NewLesson { get; set; }
+        // public LessonDB NewLesson { get; set; }
     }
 }

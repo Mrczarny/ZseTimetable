@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TimetableLib.Changes;
 using TimetableLib.DataAccess;
 using TimetableLib.Models.DBModels;
+using TimetableLib.Models.Replacements;
 using TimetableLib.Models.ScrapperModels;
 
 namespace ZseTimetable.Services
@@ -18,19 +20,25 @@ namespace ZseTimetable.Services
     public class ChangesService : IHostedService, IDisposable
     {
         private readonly ILogger<ChangesService> _logger;
-        private Timer? _timer = null;
-        private ChangesAccess _db;
-        private IEnumerable<TimetableServiceOption> TimetablesTypes;
+        private readonly HttpClient _client;
+        private readonly IConfiguration _config;
+        private readonly ChangesAccess _db;
         private ChangesScrapper _scrapper;
-        private IConfiguration _config;
-        private HttpClient _client;
+        private Timer? _timer;
+        private IEnumerable<TimetableServiceOption> TimetablesTypes;
 
-        public ChangesService(ILogger<ChangesService> logger, IDataWrapper db, IConfiguration config, IHttpClientFactory client)
+        public ChangesService(ILogger<ChangesService> logger, IDataWrapper db, IConfiguration config,
+            IHttpClientFactory client)
         {
             _logger = logger;
             _db = db.ChangesAccess;
             _config = config;
             _client = client.CreateClient("baseHttp");
+        }
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
         }
 
         public Task StartAsync(CancellationToken stoppingToken)
@@ -39,6 +47,15 @@ namespace ZseTimetable.Services
 
             _timer = new Timer(DoWork, null, TimeSpan.Zero,
                 TimeSpan.FromMinutes(3));
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("Changes Service is stopping.");
+
+            _timer?.Change(Timeout.Infinite, 0);
 
             return Task.CompletedTask;
         }
@@ -52,6 +69,7 @@ namespace ZseTimetable.Services
             {
                 await DatabaseUpload(_db.GetDBModels<ReplacementDB>(GetAllReplacements()));
             }
+
             _logger.LogInformation("Replacements upload completed!");
         }
 
@@ -59,7 +77,6 @@ namespace ZseTimetable.Services
         {
             await foreach (var dbModel in DbModels)
             {
-                
                 var records = _db.GetByDate<ReplacementDB>(DateTime.Today);
                 if (records != null)
                 {
@@ -71,7 +88,8 @@ namespace ZseTimetable.Services
                     FillNewReplacement(dbModel);
                     if (dbModel.LessonId != null)
                     {
-                        _logger.LogInformation($"Creating replacement of {dbModel.TeacherName} for {dbModel.ClassName}...");
+                        _logger.LogInformation(
+                            $"Creating replacement of {dbModel.TeacherName} for {dbModel.ClassName}...");
                         _db.Create(dbModel);
                     }
                 }
@@ -80,21 +98,19 @@ namespace ZseTimetable.Services
 
         private void CreateMissing(IEnumerable<ReplacementDB> records, ReplacementDB dbModel)
         {
-
             foreach (var record in records)
             {
                 if (record.LessonId == dbModel.LessonId)
                 {
                     try
                     {
-                        _db.Update((long)record.Id, dbModel);
+                        _db.Update((long) record.Id, dbModel);
                     }
                     catch (Exception e)
                     {
-
                     }
-                    return;
 
+                    return;
                 }
             }
 
@@ -108,49 +124,44 @@ namespace ZseTimetable.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Error while trying to create replacement of {dbModel.TeacherName} for {dbModel.ClassName}!");
+                _logger.LogError(e,
+                    $"Error while trying to create replacement of {dbModel.TeacherName} for {dbModel.ClassName}!");
             }
-
         }
 
-        private void FillNewReplacement(ReplacementDB rp)  
+        private void FillNewReplacement(ReplacementDB rp)
         {
             rp.ClassId = _db.GetByName<ClassDB>(rp.ClassName)?.Id;
             rp.ClassroomId = _db.GetByName<ClassroomDB>(rp.ClassroomName)?.Id;
             rp.TeacherId = _db.GetByName<TeacherDB>($"{rp.TeacherName[0]}.{rp.TeacherName.Split(' ').Last()}")?.Id;
             if (rp.TeacherId != null)
                 rp.LessonId = _db.GetLessonId((long) rp.TeacherId, rp.LessonNumber, DateTime.Today.DayOfWeek);
-
         }
 
         private async IAsyncEnumerable<IPersist> GetAllReplacements()
         {
-            using (var rawChanges = await _client.GetStreamAsync($"https://zastepstwa.zse.bydgoszcz.pl"))
+            DayReplacements spChanges ;
+            try
             {
-                var spChanges = _scrapper.Scrap(await new StreamReader(rawChanges,Encoding.GetEncoding("iso-8859-2")).ReadToEndAsync());
-
-                foreach (var tReplacement in spChanges.Replacements)
-                {
-                    foreach (var lReplacement in tReplacement.ClassReplacements)
-                    {
-                        yield return lReplacement;
-                    }
-                }
+                await using var rawChanges = await _client.GetStreamAsync("https://zastepstwa.zse.bydgoszcz.pl");
+                spChanges =
+                    _scrapper.Scrap(await new StreamReader(rawChanges, Encoding.GetEncoding("iso-8859-2"))
+                        .ReadToEndAsync());
             }
-        }
+            catch (Exception e)
+            {
+                spChanges = new DayReplacements
+                {
+                    Replacements = Enumerable.Empty<TeacherReplacements>()
+                };
+                _logger.LogError(e,
+                    $"Error while trying to get replacements from {"https://zastepstwa.zse.bydgoszcz.pl"}");
 
-        public Task StopAsync(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation("Changes Service is stopping.");
+            }
+            foreach (var tReplacement in spChanges.Replacements)
+            foreach (var lReplacement in tReplacement.ClassReplacements)
+                yield return lReplacement;
 
-            _timer?.Change(Timeout.Infinite, 0);
-
-            return Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-            _timer?.Dispose();
         }
     }
 }

@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using TimetableLib.Models.DBModels.DBAttributes;
 
 namespace TimetableLib.Models.DBModels
 {
     /// <summary>
-    /// Models of objects that contain timetable within themselves,
-    /// such as Classes, Classrooms or Teachers 
+    ///     Models of objects that contain timetable within themselves,
+    ///     such as Classes, Classrooms or Teachers
     /// </summary>
     public interface ITimetables : IDBModel, IDisposable
     {

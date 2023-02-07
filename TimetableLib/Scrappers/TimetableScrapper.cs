@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,9 +12,9 @@ namespace ZseTimetable
     /// <summary>
     ///     Class <c>TimetableScrapper</c> is responsible for scrapping data about one timetable from plain html file
     /// </summary>
-    public class TimetableScrapper : IAsyncDisposable
+    public class TimetableScrapper
     {
-        private IDictionary<string, Regex> _dic;
+        private readonly IDictionary<string, Regex> _dic;
 
         /// <summary>
         ///     <c>TimetableScrapper</c> constructor with enumerable of its options
@@ -30,10 +31,6 @@ namespace ZseTimetable
             ));
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeAsyncCore();
-        }
 
         private IEnumerable<Lesson>? ScrapLesson<T>(string rawLesson, int lessonNumber)
         {
@@ -113,7 +110,7 @@ namespace ZseTimetable
         }
 
 
-        public async Task<Timetable> Scrap<T>(string rawHtml) //TODO: should return T
+        public Timetable Scrap<T>(string rawHtml) //TODO: should return T
         {
             var rawBodyMatch = _dic[nameof(Scrap)].Match(rawHtml);
             //new Regex(
@@ -124,23 +121,13 @@ namespace ZseTimetable
             return new Timetable
             {
                 Title = rawBodyMatch.Groups["Title"].Value,
-                StartDate = DateTime.Parse(rawBodyMatch.Groups["startDate"].Value).Date,
-                EndDate = DateTime.TryParse(rawBodyMatch.Groups["endDate"].Value, out var date)
+                StartDate = DateTime.Parse(rawBodyMatch.Groups["startDate"].Value, CultureInfo.GetCultureInfo("pl")).Date,
+                EndDate = DateTime.TryParse(rawBodyMatch.Groups["endDate"].Value,CultureInfo.GetCultureInfo("pl"),DateTimeStyles.None, out var date)
                     ? date.Date
                     : (DateTime?) null,
                 Days = ScrapRawTable<T>(rawBodyMatch.Groups["Table"].Value)
             };
         }
 
-        public void Dispose()
-        {
-            _dic = null;
-        }
-
-        protected virtual ValueTask DisposeAsyncCore()
-        {
-            Dispose();
-            return default;
-        }
     }
 }

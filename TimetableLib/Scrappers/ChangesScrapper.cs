@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -91,7 +92,7 @@ namespace ZseTimetable
             // new Regex(@"<nobr>(?<replacementHeader>.*?(?<replacementDate>\d{1,2}\.\d{1,2}\.\d{4}).*?)</nobr>.*?(?<replacements><tr>.*</tr>)", RegexOptions.Compiled | RegexOptions.Singleline)
             var d = new DayReplacements
             {
-                Date = DateTime.TryParse(trMatch.Groups["replacementDate"].Value, out var date)
+                Date = DateTime.TryParse(trMatch.Groups["replacementDate"].Value, CultureInfo.GetCultureInfo("pl"),DateTimeStyles.None, out var date)
                     ? date.Date
                     : (DateTime?) null,
                 Replacements = ScrapTeacherReplacements(trMatch.Groups["replacements"].Value)

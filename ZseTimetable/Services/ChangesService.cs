@@ -108,6 +108,8 @@ namespace ZseTimetable.Services
                     }
                     catch (Exception e)
                     {
+                        _logger.LogError(e,
+                            $"Error while trying to update replacement of {dbModel.TeacherName} for {dbModel.ClassName}!");
                     }
 
                     return;

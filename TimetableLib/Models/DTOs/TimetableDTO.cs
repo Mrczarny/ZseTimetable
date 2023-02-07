@@ -9,13 +9,13 @@ namespace TimetableLib.Models.DTOs
     {
         public TimetableDTO(TimetableDB tb)
         {
-            Id = (long) tb.Id;
+            //Id = (long) tb.Id;
             StartDate = tb.StartDate;
             EndDate = tb.EndDate;
             Days = tb.Days.Select(x => new TimetableDayDTO(x));
         }
 
-        public long? Id { get; set; }
+        //public long? Id { get; set; }
         public IEnumerable<TimetableDayDTO> Days { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }

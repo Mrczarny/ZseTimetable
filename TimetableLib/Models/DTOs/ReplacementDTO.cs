@@ -6,11 +6,11 @@ namespace TimetableLib.Models.DTOs
     {
         public ReplacementDTO(ReplacementDB rp)
         {
-            Id = (long) rp.Id;
+           // Id = (long) rp.Id;
             Note = rp.Note;
         }
 
-        public long Id { get; set; }
+        //public long Id { get; set; }
         public LessonDTO Lesson { get; set; }
         public string NewTeacherName { get; set; }
         public long NewTeacherId { get; set; }

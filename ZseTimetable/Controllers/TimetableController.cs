@@ -38,33 +38,33 @@ namespace ZseTimetable.Controllers
             //);
         }
 
-        [HttpGet("class/{id:long}")]
-        [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(long id = 1)
-        {
-            _logger.LogInformation($"Getting class of id: {id}");
-            try
-            {
-                //Get latest populated(!) class from db
-                var classLs = _db.Get<ClassDB>(id);
-                if (classLs != null)
-                {
-                    _db.FillITimetablesModel(classLs);
-                    //returns DTO of timetable
-                    return new ClassDTO(classLs);
-                }
+        //[HttpGet("class/{id:long}")]
+        //[Produces(MediaTypeNames.Application.Json)]
+        //public async Task<ActionResult<ClassDTO>> GetClassTimetableAsync(long id = 1)
+        //{
+        //    _logger.LogInformation($"Getting class of id: {id}");
+        //    try
+        //    {
+        //        //Get latest populated(!) class from db
+        //        var classLs = _db.Get<ClassDB>(id);
+        //        if (classLs != null)
+        //        {
+        //            _db.FillITimetablesModel(classLs);
+        //            //returns DTO of timetable
+        //            return new ClassDTO(classLs);
+        //        }
 
 
-                //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
+        //        //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
 
 
-                return NotFound("Class not found");
-            }
-            catch (HttpRequestException exception)
-            {
-                return Problem(exception.Message);
-            }
-        }
+        //        return NotFound("Class not found");
+        //    }
+        //    catch (HttpRequestException exception)
+        //    {
+        //        return Problem(exception.Message);
+        //    }
+        //}
 
 
         [HttpGet("class/{name}")]
@@ -84,16 +84,16 @@ namespace ZseTimetable.Controllers
                     {
                         foreach ( var dayLesson in day.Lessons)
                         {
-                        if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
-                        {
-                            var Classroom = _db.Get<ClassroomDB>((long) dayLesson.ClassroomId);
-                            _db.FillITimetablesModel(Classroom);
-                            var Teacher = _db.Get<TeacherDB>((long) dayLesson.TeacherId);
-                            _db.FillITimetablesModel(Teacher);
-                            dayLesson.ClassroomName = Classroom.Name;
-                            dayLesson.TeacherName = Teacher.Name;
-                            dayLesson.ClassName = classLs.Name;
-                        }
+                            if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
+                            {
+                                var Classroom = _db.Get<ClassroomDB>((long) dayLesson.ClassroomId);
+                                _db.FillITimetablesModel(Classroom);
+                                var Teacher = _db.Get<TeacherDB>((long) dayLesson.TeacherId);
+                                _db.FillITimetablesModel(Teacher);
+                                dayLesson.ClassroomName = Classroom.Name;
+                                dayLesson.TeacherName = Teacher.Name;
+                                dayLesson.ClassName = classLs.Name;
+                            }
                         }
                     }
 
@@ -134,17 +134,18 @@ namespace ZseTimetable.Controllers
 
                     foreach (var day in classroomLs.Timetable.Days)
                     {
-                    foreach (var dayLesson in day.Lessons)
+                        foreach (var dayLesson in day.Lessons)
                         {
-                        if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
-                        {
-                                var Class = _db.Get<ClassDB>((long)dayLesson.ClassId);
-                            _db.FillITimetablesModel(Class);
-                                var Teacher = _db.Get<TeacherDB>((long)dayLesson.TeacherId);
-                            _db.FillITimetablesModel(Teacher);
-                            dayLesson.ClassroomName = Class.Name;
-                            dayLesson.TeacherName = Teacher.Name;
-                        }
+                            if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
+                            {
+                                    var Class = _db.Get<ClassDB>((long)dayLesson.ClassId);
+                                _db.FillITimetablesModel(Class);
+                                    var Teacher = _db.Get<TeacherDB>((long)dayLesson.TeacherId);
+                                _db.FillITimetablesModel(Teacher);
+                                dayLesson.ClassName = Class.Name;
+                                dayLesson.TeacherName = Teacher.Name;
+                                dayLesson.ClassroomName = classroomLs.Name;
+                            }
                         }
                     }
                     //returns DTO of timetable
@@ -177,17 +178,18 @@ namespace ZseTimetable.Controllers
 
                     foreach (var day in TeacherLs.Timetable.Days)
                     {
-                    foreach (var dayLesson in day.Lessons)
+                        foreach (var dayLesson in day.Lessons)
                         {
-                        if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
-                        {
-                            var Class = _db.Get<ClassDB>((long) dayLesson.ClassId);
-                            _db.FillITimetablesModel(Class);
-                            var Teacher = _db.Get<TeacherDB>((long) dayLesson.TeacherId);
-                            _db.FillITimetablesModel(Teacher);
-                            dayLesson.ClassroomName = Class.Name;
-                            dayLesson.TeacherName = Teacher.Name;
-                        }
+                            if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
+                            {
+                                var Class = _db.Get<ClassDB>((long) dayLesson.ClassId);
+                                _db.FillITimetablesModel(Class);
+                                var Classroom = _db.Get<ClassroomDB>((long) dayLesson.ClassroomId);
+                                _db.FillITimetablesModel(Classroom);
+                                dayLesson.ClassName = Class.Name;
+                                dayLesson.ClassroomName = Classroom.Name;
+                                dayLesson.TeacherName = TeacherLs.Name;
+                            }
                         }
                     }
                     //returns DTO of timetable

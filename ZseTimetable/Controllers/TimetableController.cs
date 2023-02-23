@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
@@ -119,6 +121,26 @@ namespace ZseTimetable.Controllers
             }
         }
 
+        [HttpGet("class/allNames")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<List<string>>> GetAllClassNames()
+        {
+            try
+            {
+                return _db.GetAll<ClassDB>().Select(x => x.Name).ToList();
+            }
+            catch (HttpRequestException e)
+            {
+                _logger.LogError("Network error getting all names of classes!");
+                return Problem("Sorry, we seem to have a problem.");
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
+            }
+        }
+
         [HttpGet("classroom/{name}")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<ClassroomDTO>> GetClassroomTimetableAsync(string name = "1")
@@ -164,6 +186,26 @@ namespace ZseTimetable.Controllers
             }
         }
 
+        [HttpGet("classroom/allNames")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<List<string>>> GetAllClassroomNames()
+        {
+            try
+            {
+                return _db.GetAll<ClassroomDB>().Select(x => x.Name).ToList();
+            }
+            catch (HttpRequestException e)
+            {
+                _logger.LogError("Network error getting all names of classrooms!");
+                return Problem("Sorry, we seem to have a problem.");
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
+            }
+        }
+
         [HttpGet("teacher/{name}")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<TeacherDTO>> GetTeacherTimetableAsync(string name = "P.Siwka")
@@ -200,6 +242,26 @@ namespace ZseTimetable.Controllers
                 //classLs.Timetable.Days = _db.Get<ReplacementDB>(classLs.Id); //adds all needed replacements
 
                 return NotFound("Teacher not found");
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
+            }
+        }
+
+        [HttpGet("teacher/allNames")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<List<string>>> GetAllTeacherNames()
+        {
+            try
+            {
+                return _db.GetAll<TeacherDB>().Select(x => x.Name).ToList();
+            }
+            catch (HttpRequestException e)
+            {
+                _logger.LogError("Network error getting all names of teachers!");
+                return Problem("Sorry, we seem to have a problem.");
             }
             catch (Exception exception)
             {

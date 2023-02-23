@@ -89,9 +89,9 @@ namespace ZseTimetable.Controllers
                             if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
                             {
                                 var Classroom = _db.Get<ClassroomDB>((long) dayLesson.ClassroomId);
-                                _db.FillITimetablesModel(Classroom);
+                                //_db.FillITimetablesModel(Classroom);
                                 var Teacher = _db.Get<TeacherDB>((long) dayLesson.TeacherId);
-                                _db.FillITimetablesModel(Teacher);
+                                //_db.FillITimetablesModel(Teacher);
                                 dayLesson.ClassroomName = Classroom.Name;
                                 dayLesson.TeacherName = Teacher.Name;
                                 dayLesson.ClassName = classLs.Name;
@@ -161,9 +161,9 @@ namespace ZseTimetable.Controllers
                             if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
                             {
                                     var Class = _db.Get<ClassDB>((long)dayLesson.ClassId);
-                                _db.FillITimetablesModel(Class);
+                               // _db.FillITimetablesModel(Class);
                                     var Teacher = _db.Get<TeacherDB>((long)dayLesson.TeacherId);
-                                _db.FillITimetablesModel(Teacher);
+                               // _db.FillITimetablesModel(Teacher);
                                 dayLesson.ClassName = Class.Name;
                                 dayLesson.TeacherName = Teacher.Name;
                                 dayLesson.ClassroomName = classroomLs.Name;
@@ -225,9 +225,9 @@ namespace ZseTimetable.Controllers
                             if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
                             {
                                 var Class = _db.Get<ClassDB>((long) dayLesson.ClassId);
-                                _db.FillITimetablesModel(Class);
+                                //_db.FillITimetablesModel(Class);
                                 var Classroom = _db.Get<ClassroomDB>((long) dayLesson.ClassroomId);
-                                _db.FillITimetablesModel(Classroom);
+                                //_db.FillITimetablesModel(Classroom);
                                 dayLesson.ClassName = Class.Name;
                                 dayLesson.ClassroomName = Classroom.Name;
                                 dayLesson.TeacherName = TeacherLs.Name;

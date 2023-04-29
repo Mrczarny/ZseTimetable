@@ -96,9 +96,9 @@ namespace ZseTimetable.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogCritical(e.Message);
                 //_db.CancelTransaction("Timetables");
-                throw;
+
             }
 
             _logger.LogInformation("Timetables upload completed!");
@@ -231,8 +231,6 @@ namespace ZseTimetable.Services
                 catch (Exception e)
                 {
                     _logger.LogError(e.Message);
-
-                    throw;
                 }
         }
 
@@ -359,8 +357,9 @@ namespace ZseTimetable.Services
                 {
                     return match;
                 }
-
             }
+
+            
             return null;
         }
 
@@ -386,8 +385,7 @@ namespace ZseTimetable.Services
                 }
                 catch (HttpRequestException e)
                 {
-                    _logger.LogCritical($"{e.Message},{e.InnerException},{e.Source}");
-                    throw;
+                    _logger.LogCritical($"Couldn't reach {url}! {e.Message}");
                 }
 
                 returner.Name = returner.Timetable.Title;

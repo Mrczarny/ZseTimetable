@@ -56,13 +56,13 @@ namespace ZseTimetable
                     ClassroomName = replacementsMatch.Groups["classroomName"].Value,
                     Description = replacementsMatch.Groups["description"].Value == "&nbsp;"
                         ? null
-                        : replacementsMatch.Groups["Description"].Value,
+                        : replacementsMatch.Groups["description"].Value,
                     Sub = replacementsMatch.Groups["sub"].Value == "&nbsp;"
                         ? null
-                        : replacementsMatch.Groups["Sub"].Value,
+                        : replacementsMatch.Groups["sub"].Value,
                     Note = replacementsMatch.Groups["note"].Value == "&nbsp;"
                         ? null
-                        : replacementsMatch.Groups["Note"].Value,
+                        : replacementsMatch.Groups["note"].Value,
                     OriginalTeacher = TeacherName
                 };
         }
@@ -79,10 +79,10 @@ namespace ZseTimetable
                 {
                     Teacher = new Teacher
                     {
-                        Name = replacementMatch.Groups["TeacherName"].Value
+                        Name = replacementMatch.Groups["teacherName"].Value
                     },
                     ClassReplacements = ScrapClassReplacements(replacementMatch.Groups["rawClassReplacements"].Value,
-                        replacementMatch.Groups["TeacherName"].Value)
+                        replacementMatch.Groups["teacherName"].Value)
                 };
         }
 

@@ -446,7 +446,7 @@ namespace TimetableLib.DataAccess
                 {
                     command.Connection = connection;
                     connection.Open();
-                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                    var sqlData = command.ExecuteReader();
                     if (sqlData.HasRows)
                     {
                         while (sqlData.Read())

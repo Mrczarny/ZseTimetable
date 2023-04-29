@@ -22,12 +22,20 @@ namespace ZseTimetable
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options => options.AddPolicy("Default", 
+                policy => policy
+                    .WithOrigins("*")
+                    .WithMethods("GET", "HEAD")
+                    .AllowAnyHeader()
+                    ));
+
             services.AddHttpClient("baseHttp",
                 HttpClient => HttpClient.BaseAddress = new Uri("https://plan.zse.bydgoszcz.pl"));
             services.AddControllers();
             services.AddHostedService<TimetablesService>();
             services.AddHostedService<ChangesService>();
             services.AddSingleton<IDataWrapper, DatabaseService>();
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
@@ -39,9 +47,11 @@ namespace ZseTimetable
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors("Default");
 
             app.UseAuthorization();
 
+            
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }

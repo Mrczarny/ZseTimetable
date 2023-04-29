@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ namespace ZseTimetable.Controllers
     ///     TimetableController is responsible for handling all requests about timetable
     ///     Default kind of response format is json
     /// </summary>
+    [EnableCors()]
     [Route("api/[controller]")]
     [ApiController]
     public class TimetableController : ControllerBase
@@ -121,6 +123,7 @@ namespace ZseTimetable.Controllers
             }
         }
 
+        [EnableCors]
         [HttpGet("class/allNames")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<List<string>>> GetAllClassNames()

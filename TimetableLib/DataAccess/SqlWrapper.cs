@@ -470,15 +470,15 @@ namespace TimetableLib.DataAccess
                 return records;
             }
 
-            public override long? GetLessonId(long teacherId, byte lessonNumber, DayOfWeek day)
+            public override long? GetLessonId<T>(long recordId, byte lessonNumber, DayOfWeek day)
             {
-                var command = new SqlCommand("dbo.spLesson_GetByTeacherId")
+                var command = new SqlCommand($"dbo.spLesson_GetBy{typeof(T).Name[..^2]}Id")
                 {
                     CommandType = CommandType.StoredProcedure
                 };
-                command.Parameters.Add(new SqlParameter("@TeacherId", teacherId));
+                command.Parameters.Add(new SqlParameter($"@{typeof(T).Name[..^2]}Id", recordId));
                 command.Parameters.Add(new SqlParameter("@LessonNumber", lessonNumber));
-                command.Parameters.Add(new SqlParameter("@Day", day));
+                command.Parameters.Add(new SqlParameter("@Day", (int)day - 1));
 
                 var properties = typeof(LessonDB).GetProperties().Where(x =>
                     x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));

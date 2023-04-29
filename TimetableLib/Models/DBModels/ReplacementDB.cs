@@ -13,13 +13,18 @@ namespace TimetableLib.Models.DBModels
 
         public ReplacementDB(LessonReplacement lr)
         {
-            TeacherName = lr.OriginalTeacher;
+            SubTeacherName = lr.Sub;
             ClassName = lr.ClassName;
             ClassroomName = lr.ClassroomName;
             Group = lr.Group;
             LessonNumber = lr.LessonNumber;
             Note = lr.Note;
+            Date = lr.DayOfReplacement;
+            OgTeacherName = lr.OriginalTeacher;
+
+
         }
+
 
         [SqlType(SqlDbType.BigInt)] public long? LessonId { get; set; }
 
@@ -33,15 +38,16 @@ namespace TimetableLib.Models.DBModels
 
         [SqlType(SqlDbType.NVarChar)] public string Group { get; set; }
 
-        [SqlType(SqlDbType.NVarChar)] public string TeacherName { get; set; }
+        [SqlType(SqlDbType.NVarChar)] public string SubTeacherName { get; set; }
 
         [SqlType(SqlDbType.NVarChar)] public string ClassName { get; set; }
 
         [SqlType(SqlDbType.NVarChar)] public string ClassroomName { get; set; }
 
-        [SqlType(SqlDbType.Date)] public DateTime Date { get; set; } = DateTime.Today;
+        [SqlType(SqlDbType.Date)] public DateTime Date { get; set; } 
 
-
+        //public DateTime DayOfReplacement { get; set; }
+        public string OgTeacherName { get; set; }
         public byte LessonNumber { get; set; }
 
         [Identity] [SqlType(SqlDbType.BigInt)] public long? Id { get; set; }

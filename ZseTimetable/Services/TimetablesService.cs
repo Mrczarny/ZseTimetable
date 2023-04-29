@@ -118,6 +118,7 @@ namespace ZseTimetable.Services
                         {
                             _db.FillITimetablesModel(record);
                             dbModel.TimetableId = record.TimetableId;
+                            dbModel.Id = record.Id;
                             _db.Update((long)record.Id, dbModel);
                             _db.Update(record.TimetableId, dbModel.Timetable);
                             foreach (var DbDay in dbModel.Timetable.Days)
@@ -135,7 +136,7 @@ namespace ZseTimetable.Services
                                         dbModel.SetLessonId(DbLesson);
                                         dbModel.SetLessonName(DbLesson);
                                         //_db.Update((long)matchingLesson.Id, DbLesson);
-                                        UpdateLesson((long)matchingLesson.Id, DbLesson);
+                                        UpdateLesson((long)matchingLesson.Id, DbLesson, (int)day.Day);
                                         day.Lessons.Remove(
                                             matchingLesson); //Because of this one line TimetableDay.Lessons has to be list
                                     }
@@ -235,9 +236,9 @@ namespace ZseTimetable.Services
         }
 
 
-        private void UpdateLesson(long oldLessonId, LessonDB newLesson)
+        private void UpdateLesson(long oldLessonId, LessonDB newLesson, int dayNumber)
         {
-            var matchingClassLesson = FindAndFillLesson<ClassDB>(newLesson);
+            var matchingClassLesson = FindAndFillLesson<ClassDB>(newLesson, dayNumber);
             if (matchingClassLesson != null)
             {
                 _db.Update((long) matchingClassLesson.Id, matchingClassLesson);
@@ -249,7 +250,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(newLesson);
+            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(newLesson, dayNumber);
             if (matchingClassroomLesson != null)
             {
                 _db.Update((long) matchingClassroomLesson.Id, matchingClassroomLesson);
@@ -261,7 +262,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(newLesson);
+            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(newLesson, dayNumber);
             if (matchingTeacherLesson != null)
             {
                 _db.Update((long) matchingTeacherLesson.Id, matchingTeacherLesson);
@@ -274,7 +275,7 @@ namespace ZseTimetable.Services
             }
         }
 
-        private LessonDB FindAndFillLesson<T>(LessonDB lesson) where T : class, ITimetables, new()
+        private LessonDB FindAndFillLesson<T>(LessonDB lesson, int dayNumber) where T : class, ITimetables, new()
         {
             var t = new T();
             if (t.GetLessonName(lesson) != null && t.GetLessonLink(lesson) != null)
@@ -284,12 +285,13 @@ namespace ZseTimetable.Services
                 if (matchingClass != null)
                 {
                     _db.FillITimetablesModel(matchingClass);
-                    var matchingLesson = FindMatchingLesson(matchingClass.Timetable.Days, lesson);
+                    var matchingLesson = FindMatchingLesson(matchingClass.Timetable.Days, lesson, dayNumber);
                     if (matchingLesson != null)
                     {
                         matchingLesson.ClassId ??= lesson.ClassId;
                         matchingLesson.ClassroomId ??= lesson.ClassroomId;
                         matchingLesson.TeacherId ??= lesson.TeacherId;
+                        matchingLesson.Group ??= lesson.Group;
                         return matchingLesson;
                     }
                 }
@@ -300,7 +302,7 @@ namespace ZseTimetable.Services
 
         private void CreateLesson(LessonDB lesson, TimetableDayDB day) // TODO - DRY :)
         {
-            var matchingClassLesson = FindAndFillLesson<ClassDB>(lesson);
+            var matchingClassLesson = FindAndFillLesson<ClassDB>(lesson, (int)day.Day);
             if (matchingClassLesson != null)
             {
                 _db.Update((long) matchingClassLesson.Id, matchingClassLesson);
@@ -312,7 +314,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(lesson);
+            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(lesson, (int)day.Day);
             if (matchingClassroomLesson != null)
             {
                 _db.Update((long) matchingClassroomLesson.Id, matchingClassroomLesson);
@@ -324,7 +326,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(lesson);
+            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(lesson, (int)day.Day);
             if (matchingTeacherLesson != null)
             {
                 _db.Update((long) matchingTeacherLesson.Id, matchingTeacherLesson);
@@ -345,9 +347,10 @@ namespace ZseTimetable.Services
             _db.Create(dayLesson);
         }
 
-        private LessonDB FindMatchingLesson(IEnumerable<TimetableDayDB> timetableDays, LessonDB lesson)
+        private LessonDB FindMatchingLesson(IEnumerable<TimetableDayDB> timetableDays, LessonDB lesson, int dayNumber)
         {
-            foreach (var day in timetableDays)
+            var day = timetableDays.ToList().Find(x => (int) x.Day == dayNumber);
+            if (day != null)
             {
                 var match = day.Lessons?.Find(x => x.Number == lesson.Number
                                                    && x.Name == lesson.Name && x.Group == lesson.Group);

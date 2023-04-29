@@ -13,6 +13,7 @@ using TimetableLib.DataAccess;
 using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.ScrapperModels;
+using TimetableLib.Scrappers;
 
 namespace ZseTimetable.Services
 {

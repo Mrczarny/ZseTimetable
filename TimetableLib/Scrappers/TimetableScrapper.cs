@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using TimetableLib.Models.ScrapperModels;
 using TimetableLib.Timetables;
 
-namespace ZseTimetable
+namespace TimetableLib.Scrappers
 {
     /// <summary>
     ///     Class <c>TimetableScrapper</c> is responsible for scrapping data about one timetable from plain html file
@@ -80,30 +79,61 @@ namespace ZseTimetable
                 var lessonHours = lessonsMatch.Groups["lessonHours"].Value;
                 var rawLessons = lessonsMatch.Groups["lessons"].Value;
                 tds = rawLessons.Split("</td>");
+
                 for (var i = 0; i < tds.Length - 1; i++)
                 {
-                    var d = tds[i].Split(',');
-                    if (d.Length > 1)
+                    var d = _dic["tds"].Matches(tds[i]).ToList();
+                    if (d.Count > 3)
                     {
-                        //TODO - Lessons can have more then one class 
-                        var t = tds[i].Split(" <");
-                        if (t[0].Length - 1 < d[0].Length)
+                        //Lessons can have more then one class 
+                        if (d.Count % 3 != 0)
                         {
-                            d[0] = d[0].Substring(t[0].Length - 1);
-                            d[^1] = d[^1][..(d[^1].Length - t[^1].Length)];
-                            foreach (var s in d)
+                            var oddOnesE = d.Where(x => d.Count(y => y.Groups["type"]?.Value == x.Groups["type"]?.Value) > 1);
+                            var oddOnes = new List<Match>(oddOnesE);
+                            foreach (var m in oddOnesE)
                             {
-                                var lessons = ScrapLesson<T>(t[0] + s + t[^1], lessonNumber);
+                                oddOnes.Remove(m);
+                                var str = String.Empty;
+                                foreach (var normal in d.Where(x => !oddOnes.Contains(x)))
+                                {
+                                    str += normal.ToString();
+                                }
+                                oddOnes.Add(m);
+                                str += "<";
+                                var lessons = ScrapLesson<T>(str, lessonNumber);
                                 classDays[i].Lessons.AddRange(lessons);
                             }
                         }
+                        else
+                        {
+                            var chunked = new List<List<Match>>();
+                            for (int j = 0; j < d.Count; j += 3)
+                            {
+                                chunked.Add(d.GetRange(j, Math.Min(3, d.Count - j)));
+                            }
+                            
+                            foreach (var ch in chunked)
+                            {
+                                var str = String.Empty;
+                                foreach (var m in ch)
+                                {
+                                    str += m.ToString();
+                                }
+                                str += "<";
+                                var lessons = ScrapLesson<T>(str, lessonNumber);
+                                classDays[i].Lessons.AddRange(lessons);
+                            }
+                        }
+
                     }
                     else
                     {
                         var lessons = ScrapLesson<T>(tds[i], lessonNumber);
                         classDays[i].Lessons.AddRange(lessons);
                     }
+
                 }
+
             }
 
             return classDays;

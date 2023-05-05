@@ -209,6 +209,38 @@ namespace TimetableLib.DataAccess
                 return record;
             }
 
+            public override string GetNameById<T>(long id)
+            {
+                var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetNameById")
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.Add(new SqlParameter("@Id", id));
+                //var record = new T();
+                //var properties = record.GetType().GetProperties().Where(IsDbProperty);
+                string Name = String.Empty;
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    command.Connection = connection;
+                    connection.Open();
+                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                    if (sqlData.HasRows)
+                    {
+                        while (sqlData.Read())
+                        {
+                            Name = (string)sqlData.GetValue("Name");
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                return Name;
+            }
+
             public override IEnumerable<T> GetAll<T>()
             {
                 var command = new SqlCommand($"dbo.sp{typeof(T).Name[..^2]}_GetAll")
@@ -276,6 +308,8 @@ namespace TimetableLib.DataAccess
             public override IEnumerable<T> GetAll<T>() => _baseWrapper.GetAll<T>();
 
             public override T GetByName<T>(string name) => _baseWrapper.GetByName<T>(name);
+
+            public override string GetNameById<T>(long id) => _baseWrapper.GetNameById<T>(id);
 
             public override T GetByLink<T>(string name) where T : class
             {
@@ -422,6 +456,8 @@ namespace TimetableLib.DataAccess
             public override T Get<T>() => _baseWrapper.Get<T>();
 
             public override T GetByName<T>(string name) => _baseWrapper.GetByName<T>(name);
+
+            public override string GetNameById<T>(long id) => _baseWrapper.GetNameById<T>(id);
 
             public override IEnumerable<T> GetAll<T>() => _baseWrapper.GetAll<T>();
 

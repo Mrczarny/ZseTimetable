@@ -80,6 +80,8 @@ namespace TimetableLib.DataAccess
         /// </returns>
         public abstract T? GetByName<T>(string name) where T : class, ITimetables, new();
 
+        public abstract string GetNameById<T>(long id) where T : class, ITimetables, new();
+
         public async IAsyncEnumerable<T> GetDBModels<T>(IAsyncEnumerable<IPersist> models) where T : class, IDBModel
         {
             await foreach (var model in models) yield return model.GetDBModel<T>();

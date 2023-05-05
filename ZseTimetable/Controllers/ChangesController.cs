@@ -36,15 +36,57 @@ namespace ZseTimetable.Controllers
 
 
         [HttpGet]
+        [HttpGet("Week")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<ReplacementDTO>>> GetWeekChanges()
+        {
+            try
+            {
+                var ts = new TimeSpan((int) DateTime.Today.DayOfWeek, 0,0,0);
+                var weekStartDay = DateTime.Today.Subtract(ts);
+                var replacements = new List<ReplacementDTO>();
+                for (int i = 0; i < 7; i++)
+                {
+                    var dbReplacements = _db.GetByDate<ReplacementDB>(weekStartDay.AddDays(i));
+
+                    foreach (var rp in dbReplacements)
+                    {
+                        var lesson = _db.Get<LessonDB>((long)rp.LessonId);
+                        lesson.ClassName = _db.GetNameById<ClassDB>((long)lesson.ClassId);
+                        lesson.ClassroomName = _db.GetNameById<ClassroomDB>((long)lesson.ClassroomId);
+                        lesson.TeacherName = _db.GetNameById<TeacherDB>((long)lesson.TeacherId);
+
+                        replacements.Add(new ReplacementDTO(rp, lesson) { ReplacementDate = weekStartDay.AddDays(i) });
+                    }
+                }
+
+                return replacements;
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, exception.Message);
+                return Problem("Sorry, we seem to have a problem.");
+            }
+        }
+
+        [HttpGet]
         [HttpGet("Today")]
         [Produces(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<IEnumerable<ReplacementDTO>>> GetChangesAsync()
+        public async Task<ActionResult<IEnumerable<ReplacementDTO>>> GetChanges()
         {
             try
             {
                 var dbReplacements = _db.GetByDate<ReplacementDB>(DateTime.Today);
                 var replacements = new List<ReplacementDTO>();
-                foreach (var rp in dbReplacements) replacements.Add(new ReplacementDTO(rp));
+                foreach (var rp in dbReplacements)
+                {
+                    var lesson = _db.Get<LessonDB>((long)rp.LessonId);
+                    lesson.ClassName = _db.GetNameById<ClassDB>((long)lesson.ClassId);
+                    lesson.ClassroomName = _db.GetNameById<ClassroomDB>((long)lesson.ClassroomId);
+                    lesson.TeacherName = _db.GetNameById<TeacherDB>((long)lesson.TeacherId);
+
+                    replacements.Add(new ReplacementDTO(rp, lesson) { ReplacementDate = DateTime.Now });
+                }
 
                 return replacements;
             }
@@ -62,7 +104,15 @@ namespace ZseTimetable.Controllers
             {
                 var dbReplacements = _db.GetByDate<ReplacementDB>(date);
                 var replacements = new List<ReplacementDTO>();
-                foreach (var rp in dbReplacements) replacements.Add(new ReplacementDTO(rp));
+                foreach (var rp in dbReplacements)
+                {
+                    var lesson = _db.Get<LessonDB>((long) rp.LessonId);
+                    lesson.ClassName = _db.GetNameById<ClassDB>((long)lesson.ClassId);
+                    lesson.ClassroomName = _db.GetNameById<ClassroomDB>((long) lesson.ClassroomId);
+                    lesson.TeacherName = _db.GetNameById<TeacherDB>((long) lesson.TeacherId);
+                    replacements.Add(new ReplacementDTO(rp, lesson) {ReplacementDate = date});
+                }
+
 
                 return replacements;
             }

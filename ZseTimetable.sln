@@ -10,6 +10,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZseTimetable", "ZseTimetabl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimetableLib", "TimetableLib\TimetableLib.csproj", "{6D769BC0-8CED-4CC8-A494-1AECC4E5B07A}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{76FECFB8-7C81-405B-83D3-08530ECC982E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{6D769BC0-8CED-4CC8-A494-1AECC4E5B07A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D769BC0-8CED-4CC8-A494-1AECC4E5B07A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D769BC0-8CED-4CC8-A494-1AECC4E5B07A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76FECFB8-7C81-405B-83D3-08530ECC982E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76FECFB8-7C81-405B-83D3-08530ECC982E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76FECFB8-7C81-405B-83D3-08530ECC982E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76FECFB8-7C81-405B-83D3-08530ECC982E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

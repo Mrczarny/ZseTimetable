@@ -1,23 +1,20 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.SqlClient;
+using System.Text;
 using TimetableLib.DBAccess;
-using TimetableLib.Models.DBModels;
 using TimetableLib.Models.DBModels.DBAttributes;
+using TimetableLib.Models.DBModels;
 
 namespace TimetableLib.DataAccess
 {
-    public class SqlWrapper : IDataWrapper
+    public class TestWrapper : IDataWrapper
     {
-        protected readonly string _connectionString;
-
-        public SqlWrapper(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
+        private string _connectionString;
+        public TestWrapper(string connectionString) { }
 
         public TimetablesAccess TimetablesAccess => new SqlTimetableWrapper(_connectionString);
         public ChangesAccess ChangesAccess => new SqlChangesWrapper(_connectionString);
@@ -61,12 +58,12 @@ namespace TimetableLib.DataAccess
                     SqlDbType = SqlDbType.BigInt
                 });
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
-                }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
+                //}
             }
 
             public override long Create<T>(T record)
@@ -91,15 +88,15 @@ namespace TimetableLib.DataAccess
                     command.Parameters.Add(parameter);
                 }
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
-                    id = (long) cmdEx;
-                }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
+                //    id = (long)cmdEx;
+                //}
 
-                return id;
+                return 1;
             }
 
             public override void Delete<T>(long id)
@@ -110,12 +107,12 @@ namespace TimetableLib.DataAccess
                 };
                 command.Parameters.Add(new SqlParameter("@Id", id));
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
-                }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var cmdEx = command.ExecuteScalar(); // Doing it in one line throws nullreference
+                //}
             }
 
             public override T Get<T>(long id)
@@ -129,27 +126,27 @@ namespace TimetableLib.DataAccess
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read())
+                //        {
+                //            foreach (var property in properties)
+                //            {
+                //                var value = sqlData.GetValue(property.Name);
+                //                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        return null;
+                //    }
+                //}
 
                 return record;
             }
@@ -186,28 +183,28 @@ namespace TimetableLib.DataAccess
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        connection.Close();
-                        return null;
-                    }
-                }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read())
+                //        {
+                //            foreach (var property in properties)
+                //            {
+                //                var value = sqlData.GetValue(property.Name);
+                //                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        connection.Close();
+                //        return null;
+                //    }
+                //}
 
                 return record;
             }
@@ -232,7 +229,7 @@ namespace TimetableLib.DataAccess
                     {
                         while (sqlData.Read())
                         {
-                            Name = (string) sqlData.GetValue("Name");
+                            Name = (string)sqlData.GetValue("Name");
                         }
                     }
                     else
@@ -256,30 +253,30 @@ namespace TimetableLib.DataAccess
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader();
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            record = new T();
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader();
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read())
+                //        {
+                //            record = new T();
+                //            foreach (var property in properties)
+                //            {
+                //                var value = sqlData.GetValue(property.Name);
+                //                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                //            }
 
-                            records.Add(record);
-                        }
-                    }
-                    else
-                    {
-                        return Enumerable.Empty<T>();
-                    }
-                }
+                //            records.Add(record);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        return Enumerable.Empty<T>();
+                //    }
+                //}
 
                 return records;
             }
@@ -326,27 +323,27 @@ namespace TimetableLib.DataAccess
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read())
+                //        {
+                //            foreach (var property in properties)
+                //            {
+                //                var value = sqlData.GetValue(property.Name);
+                //                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        return null;
+                //    }
+                //}
 
                 return record;
             }
@@ -367,30 +364,30 @@ namespace TimetableLib.DataAccess
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader();
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            record = new TimetableDayDB();
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader();
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read())
+                //        {
+                //            record = new TimetableDayDB();
+                //            foreach (var property in properties)
+                //            {
+                //                var value = sqlData.GetValue(property.Name);
+                //                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                //            }
 
-                            records.Add(record);
-                        }
-                    }
-                    else
-                    {
-                        return Enumerable.Empty<TimetableDayDB>();
-                    }
-                }
+                //            records.Add(record);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        return Enumerable.Empty<TimetableDayDB>();
+                //    }
+                //}
 
                 return records;
             }
@@ -408,30 +405,30 @@ namespace TimetableLib.DataAccess
                 var properties = record.GetType().GetProperties().Where(IsDbProperty);
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader();
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            record = new LessonDB();
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader();
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read())
+                //        {
+                //            record = new LessonDB();
+                //            foreach (var property in properties)
+                //            {
+                //                var value = sqlData.GetValue(property.Name);
+                //                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                //            }
 
-                            records.Add(record);
-                        }
-                    }
-                    else
-                    {
-                        return Enumerable.Empty<LessonDB>();
-                    }
-                }
+                //            records.Add(record);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        return Enumerable.Empty<LessonDB>();
+                //    }
+                //}
 
                 return records;
             }
@@ -478,30 +475,30 @@ namespace TimetableLib.DataAccess
                     x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader();
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read())
-                        {
-                            record = new T();
-                            foreach (var property in properties)
-                            {
-                                var value = sqlData.GetValue(property.Name);
-                                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
-                            }
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read())
+                //        {
+                //            record = new T();
+                //            foreach (var property in properties)
+                //            {
+                //                var value = sqlData.GetValue(property.Name);
+                //                property.SetValue(record, value.Equals(DBNull.Value) ? null : value);
+                //            }
 
-                            records.Add(record);
-                        }
-                    }
-                    else
-                    {
-                        return Enumerable.Empty<T>();
-                    }
-                }
+                //            records.Add(record);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        return Enumerable.Empty<T>();
+                //    }
+                //}
 
                 return records;
             }
@@ -514,35 +511,45 @@ namespace TimetableLib.DataAccess
                 };
                 command.Parameters.Add(new SqlParameter($"@{typeof(T).Name[..^2]}Id", recordId));
                 command.Parameters.Add(new SqlParameter("@LessonNumber", lessonNumber));
-                command.Parameters.Add(new SqlParameter("@Day", (int)day - 1));
+                command.Parameters.Add(new SqlParameter("@Day", day));
 
                 var properties = typeof(LessonDB).GetProperties().Where(x =>
                     x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
 
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
-                {
-                    command.Connection = connection;
-                    connection.Open();
-                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
-                    long? id = null;
-                    if (sqlData.HasRows)
-                    {
-                        while (sqlData.Read()) id = (long) sqlData[0];
+                //using (SqlConnection connection = new SqlConnection(_connectionString))
+                //{
+                //    command.Connection = connection;
+                //    connection.Open();
+                //    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                //    long? id = null;
+                //    if (sqlData.HasRows)
+                //    {
+                //        while (sqlData.Read()) id = (long)sqlData[0];
 
-                        return id;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
+                //        return id;
+                //    }
+                //    else
+                //    {
+                //        return null;
+                //    }
+                //}
+                return null;
             }
         }
-
-        private static bool IsDbProperty(PropertyInfo property)
+        private static bool IsDbProperty(PropertyInfo prop)
         {
-           return Attribute.IsDefined(property, typeof(SqlTypeAttribute));
+            object[] attrs = prop.GetCustomAttributes(true);
+            foreach (object attr in attrs)
+            {
+                SqlTypeAttribute authAttr = attr as SqlTypeAttribute;
+                if (authAttr != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

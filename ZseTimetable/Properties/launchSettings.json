@@ -12,7 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/timetable",
+      "launchUrl": "api/timetable/class/1b",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -20,7 +20,7 @@
     "ZseTimetable": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/timetable",
+      "launchUrl": "api/timetable/class/1b",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
@@ -29,7 +29,7 @@
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/api/timetable",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/api/timetable/class/1b",
       "publishAllPorts": true,
       "useSSL": true
     }

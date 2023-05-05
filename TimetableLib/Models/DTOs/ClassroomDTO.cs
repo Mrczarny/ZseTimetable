@@ -6,15 +6,15 @@ namespace TimetableLib.Models.DTOs
     {
         public ClassroomDTO(ClassroomDB cr)
         {
-            Id = (long) cr.Id;
+            //Id = (long) cr.Id;
             Name = cr.Name;
-            Number = cr.Number;
+           // Number = cr.Number;
             Timetable = new TimetableDTO(cr.Timetable);
         }
 
-        public long Id { get; set; }
+       // public long Id { get; set; }
         public string Name { get; set; }
-        public short Number { get; set; }
+        //public short Number { get; set; }
         public TimetableDTO Timetable { get; set; }
     }
 }

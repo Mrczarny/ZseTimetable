@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -55,13 +56,13 @@ namespace ZseTimetable
                     ClassroomName = replacementsMatch.Groups["classroomName"].Value,
                     Description = replacementsMatch.Groups["description"].Value == "&nbsp;"
                         ? null
-                        : replacementsMatch.Groups["Description"].Value,
+                        : replacementsMatch.Groups["description"].Value,
                     Sub = replacementsMatch.Groups["sub"].Value == "&nbsp;"
                         ? null
-                        : replacementsMatch.Groups["Sub"].Value,
+                        : replacementsMatch.Groups["sub"].Value,
                     Note = replacementsMatch.Groups["note"].Value == "&nbsp;"
                         ? null
-                        : replacementsMatch.Groups["Note"].Value,
+                        : replacementsMatch.Groups["note"].Value,
                     OriginalTeacher = TeacherName
                 };
         }
@@ -78,10 +79,10 @@ namespace ZseTimetable
                 {
                     Teacher = new Teacher
                     {
-                        Name = replacementMatch.Groups["TeacherName"].Value
+                        Name = replacementMatch.Groups["teacherName"].Value
                     },
                     ClassReplacements = ScrapClassReplacements(replacementMatch.Groups["rawClassReplacements"].Value,
-                        replacementMatch.Groups["TeacherName"].Value)
+                        replacementMatch.Groups["teacherName"].Value)
                 };
         }
 
@@ -91,7 +92,7 @@ namespace ZseTimetable
             // new Regex(@"<nobr>(?<replacementHeader>.*?(?<replacementDate>\d{1,2}\.\d{1,2}\.\d{4}).*?)</nobr>.*?(?<replacements><tr>.*</tr>)", RegexOptions.Compiled | RegexOptions.Singleline)
             var d = new DayReplacements
             {
-                Date = DateTime.TryParse(trMatch.Groups["replacementDate"].Value, out var date)
+                Date = DateTime.TryParse(trMatch.Groups["replacementDate"].Value, CultureInfo.GetCultureInfo("pl"),DateTimeStyles.None, out var date)
                     ? date.Date
                     : (DateTime?) null,
                 Replacements = ScrapTeacherReplacements(trMatch.Groups["replacements"].Value)

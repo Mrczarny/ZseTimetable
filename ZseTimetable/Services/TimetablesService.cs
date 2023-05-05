@@ -13,6 +13,7 @@ using TimetableLib.DataAccess;
 using TimetableLib.DBAccess;
 using TimetableLib.Models.DBModels;
 using TimetableLib.Models.ScrapperModels;
+using TimetableLib.Scrappers;
 
 namespace ZseTimetable.Services
 {
@@ -36,7 +37,8 @@ namespace ZseTimetable.Services
             //    .GetSection("Timetable")
             //    .GetChildren().Select(x => x.Get<ScrapperOption>())
             //);
-            _config = config;
+            _config = config.GetSection(ScrapperOption.Position)
+                .GetSection("Timetable");
             _db = db.TimetablesAccess;
             TimetablesTypes = config.GetSection(ScrapperOption.Position).GetSection("Types").GetChildren()
                 .Select(x => x.Get<TimetableServiceOption>());
@@ -75,10 +77,7 @@ namespace ZseTimetable.Services
             //_db.BeginTransaction("Timetables");
             try
             {
-                await using (_scrapper = new TimetableScrapper(_config.GetSection(ScrapperOption.Position)
-                                 .GetSection("Timetable")
-                                 .GetChildren().Select(x => x.Get<ScrapperOption>())))
-                {
+                _scrapper = new TimetableScrapper(_config.GetChildren().Select(x => x.Get<ScrapperOption>()));
                     await DatabaseUpload(
                         _db.GetDBModels<ClassDB>(
                             GetTimetable<Class>(
@@ -93,13 +92,13 @@ namespace ZseTimetable.Services
                         _db.GetDBModels<TeacherDB>(
                             GetTimetable<Teacher>(
                                 TimetablesTypes.First(x => x.type == typeof(Teacher).Name).letter)));
-                }
+                
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogCritical(e.Message);
                 //_db.CancelTransaction("Timetables");
-                throw;
+
             }
 
             _logger.LogInformation("Timetables upload completed!");
@@ -120,14 +119,15 @@ namespace ZseTimetable.Services
                         {
                             _db.FillITimetablesModel(record);
                             dbModel.TimetableId = record.TimetableId;
-                            _db.Update((long) record.Id, dbModel);
+                            dbModel.Id = record.Id;
+                            _db.Update((long)record.Id, dbModel);
                             _db.Update(record.TimetableId, dbModel.Timetable);
                             foreach (var DbDay in dbModel.Timetable.Days)
                             {
                                 var day = record.Timetable.Days.Single(x => x.Day == DbDay.Day);
                                 DbDay.TimetableId = record.TimetableId;
                                 DbDay.Id = day.Id;
-                                _db.Update((long) day.Id, DbDay);
+                                _db.Update((long)day.Id, DbDay);
                                 foreach (var DbLesson in DbDay.Lessons)
                                 {
                                     var matchingLesson = day.Lessons?.FirstOrDefault(x =>
@@ -137,7 +137,7 @@ namespace ZseTimetable.Services
                                         dbModel.SetLessonId(DbLesson);
                                         dbModel.SetLessonName(DbLesson);
                                         //_db.Update((long)matchingLesson.Id, DbLesson);
-                                        UpdateLesson((long) matchingLesson.Id, DbLesson);
+                                        UpdateLesson((long)matchingLesson.Id, DbLesson, (int)day.Day);
                                         day.Lessons.Remove(
                                             matchingLesson); //Because of this one line TimetableDay.Lessons has to be list
                                     }
@@ -155,9 +155,9 @@ namespace ZseTimetable.Services
                                     {
                                         foreach (var dayLesson in _db.GetAll<TimetableDayLessonDB>()
                                                      .Where(x => x.LessonId == lesson.Id))
-                                            _db.Delete<TimetableDayLessonDB>((long) dayLesson.Id);
+                                            _db.Delete<TimetableDayLessonDB>((long)dayLesson.Id);
 
-                                        _db.Delete<LessonDB>((long) lesson.Id);
+                                        _db.Delete<LessonDB>((long)lesson.Id);
                                     }
                             }
 
@@ -171,13 +171,14 @@ namespace ZseTimetable.Services
                             {
                                 foreach (var day in _db.GetTDaysByTId(record.TimetableId))
                                 {
-                                    foreach (var lesson in _db.GetLessonsByTDayId((long) day.Id))
-                                        _db.Delete<LessonDB>((long) lesson.Id);
-                                    _db.Delete<TimetableDayDB>((long) day.Id);
+                                    foreach (var lesson in _db.GetLessonsByTDayId((long)day.Id))
+                                    {
+                                        _db.Delete<LessonDB>((long)lesson.Id);
+                                    }
+                                    _db.Delete<TimetableDayDB>((long)day.Id);
                                 }
-
                                 _db.Delete<TimetableDB>(record.TimetableId);
-                                _db.Delete<T>((long) record.Id);
+                                _db.Delete<T>((long)record.Id);
                             }
                         }
                     }
@@ -215,13 +216,14 @@ namespace ZseTimetable.Services
                             {
                                 foreach (var day in _db.GetTDaysByTId(dbModel.TimetableId))
                                 {
-                                    foreach (var lesson in _db.GetLessonsByTDayId((long) day.Id))
-                                        _db.Delete<LessonDB>((long) lesson.Id);
-                                    _db.Delete<TimetableDayDB>((long) day.Id);
+                                    foreach (var lesson in _db.GetLessonsByTDayId((long)day.Id))
+                                    {
+                                        _db.Delete<LessonDB>((long)lesson.Id);
+                                    }
+                                    _db.Delete<TimetableDayDB>((long)day.Id);
                                 }
-
                                 _db.Delete<TimetableDB>(dbModel.TimetableId);
-                                _db.Delete<T>((long) dbModel.Id);
+                                //_db.Delete<T>((long) dbModel.Id);
                             }
                         }
                     }
@@ -229,14 +231,13 @@ namespace ZseTimetable.Services
                 catch (Exception e)
                 {
                     _logger.LogError(e.Message);
-
-                    throw;
                 }
         }
 
-        private void UpdateLesson(long oldLessonId, LessonDB newLesson)
+
+        private void UpdateLesson(long oldLessonId, LessonDB newLesson, int dayNumber)
         {
-            var matchingClassLesson = FindAndFillLesson<ClassDB>(newLesson);
+            var matchingClassLesson = FindAndFillLesson<ClassDB>(newLesson, dayNumber);
             if (matchingClassLesson != null)
             {
                 _db.Update((long) matchingClassLesson.Id, matchingClassLesson);
@@ -248,7 +249,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(newLesson);
+            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(newLesson, dayNumber);
             if (matchingClassroomLesson != null)
             {
                 _db.Update((long) matchingClassroomLesson.Id, matchingClassroomLesson);
@@ -260,7 +261,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(newLesson);
+            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(newLesson, dayNumber);
             if (matchingTeacherLesson != null)
             {
                 _db.Update((long) matchingTeacherLesson.Id, matchingTeacherLesson);
@@ -269,10 +270,11 @@ namespace ZseTimetable.Services
                 //    LessonId = (long)matchingTeacherLesson.Id,
                 //    TimetableDayId = (long)day.Id
                 //});
+                return;
             }
         }
 
-        private LessonDB FindAndFillLesson<T>(LessonDB lesson) where T : class, ITimetables, new()
+        private LessonDB FindAndFillLesson<T>(LessonDB lesson, int dayNumber) where T : class, ITimetables, new()
         {
             var t = new T();
             if (t.GetLessonName(lesson) != null && t.GetLessonLink(lesson) != null)
@@ -282,12 +284,13 @@ namespace ZseTimetable.Services
                 if (matchingClass != null)
                 {
                     _db.FillITimetablesModel(matchingClass);
-                    var matchingLesson = FindMatchingLesson(matchingClass.Timetable.Days, lesson);
+                    var matchingLesson = FindMatchingLesson(matchingClass.Timetable.Days, lesson, dayNumber);
                     if (matchingLesson != null)
                     {
                         matchingLesson.ClassId ??= lesson.ClassId;
                         matchingLesson.ClassroomId ??= lesson.ClassroomId;
                         matchingLesson.TeacherId ??= lesson.TeacherId;
+                        matchingLesson.Group ??= lesson.Group;
                         return matchingLesson;
                     }
                 }
@@ -298,7 +301,7 @@ namespace ZseTimetable.Services
 
         private void CreateLesson(LessonDB lesson, TimetableDayDB day) // TODO - DRY :)
         {
-            var matchingClassLesson = FindAndFillLesson<ClassDB>(lesson);
+            var matchingClassLesson = FindAndFillLesson<ClassDB>(lesson, (int)day.Day);
             if (matchingClassLesson != null)
             {
                 _db.Update((long) matchingClassLesson.Id, matchingClassLesson);
@@ -310,7 +313,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(lesson);
+            var matchingClassroomLesson = FindAndFillLesson<ClassroomDB>(lesson, (int)day.Day);
             if (matchingClassroomLesson != null)
             {
                 _db.Update((long) matchingClassroomLesson.Id, matchingClassroomLesson);
@@ -322,7 +325,7 @@ namespace ZseTimetable.Services
                 return;
             }
 
-            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(lesson);
+            var matchingTeacherLesson = FindAndFillLesson<TeacherDB>(lesson, (int)day.Day);
             if (matchingTeacherLesson != null)
             {
                 _db.Update((long) matchingTeacherLesson.Id, matchingTeacherLesson);
@@ -343,15 +346,20 @@ namespace ZseTimetable.Services
             _db.Create(dayLesson);
         }
 
-        private LessonDB FindMatchingLesson(IEnumerable<TimetableDayDB> timetableDays, LessonDB lesson)
+        private LessonDB FindMatchingLesson(IEnumerable<TimetableDayDB> timetableDays, LessonDB lesson, int dayNumber)
         {
-            foreach (var day in timetableDays)
+            var day = timetableDays.ToList().Find(x => (int) x.Day == dayNumber);
+            if (day != null)
             {
                 var match = day.Lessons?.Find(x => x.Number == lesson.Number
                                                    && x.Name == lesson.Name && x.Group == lesson.Group);
-                if (match != null) return match;
+                if (match != null)
+                {
+                    return match;
+                }
             }
 
+            
             return null;
         }
 
@@ -366,16 +374,18 @@ namespace ZseTimetable.Services
                 returner.Link = url[(_client.BaseAddress.AbsoluteUri.Length + baseName.Length + 1)..];
                 try
                 {
-                    using (var rawTimetable = await _client.GetStreamAsync(url))
+                    await using (var rawTimetable = await _client.GetStreamAsync(url))
                     {
-                        var html = await new StreamReader(rawTimetable).ReadToEndAsync();
-                        returner.Timetable = await _scrapper.Scrap<T>(html);
+                        using (var html =  new StreamReader(rawTimetable))
+                        {
+                            returner.Timetable = _scrapper.Scrap<T>(await html.ReadToEndAsync());
+                        }
+                        
                     }
                 }
                 catch (HttpRequestException e)
                 {
-                    _logger.LogCritical($"{e.Message},{e.InnerException},{e.Source}");
-                    throw;
+                    _logger.LogCritical($"Couldn't reach {url}! {e.Message}");
                 }
 
                 returner.Name = returner.Timetable.Title;

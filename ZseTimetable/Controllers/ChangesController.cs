@@ -52,11 +52,16 @@ namespace ZseTimetable.Controllers
                     foreach (var rp in dbReplacements)
                     {
                         var lesson = _db.Get<LessonDB>((long)rp.LessonId);
+                        if (lesson != null)
+                        {
                         lesson.ClassName = _db.GetNameById<ClassDB>((long)lesson.ClassId);
                         lesson.ClassroomName = _db.GetNameById<ClassroomDB>((long)lesson.ClassroomId);
                         lesson.TeacherName = _db.GetNameById<TeacherDB>((long)lesson.TeacherId);
+                            replacements.Add(new ReplacementDTO(rp, lesson) { ReplacementDate = weekStartDay.AddDays(i) });
+                            continue;
+                        }
+                        replacements.Add(new ReplacementDTO(rp) { ReplacementDate = weekStartDay.AddDays(i) });
 
-                        replacements.Add(new ReplacementDTO(rp, lesson) { ReplacementDate = weekStartDay.AddDays(i) });
                     }
                 }
 

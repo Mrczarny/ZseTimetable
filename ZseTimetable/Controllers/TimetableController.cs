@@ -161,15 +161,12 @@ namespace ZseTimetable.Controllers
                     {
                         foreach (var dayLesson in day.Lessons)
                         {
-                            if (dayLesson.ClassroomId != null && dayLesson.TeacherId != null)
+                            if (dayLesson.ClassId != null && dayLesson.TeacherId != null)
                             {
-                                    var Class = _db.Get<ClassDB>((long)dayLesson.ClassId);
-                               // _db.FillITimetablesModel(Class);
-                                    var Teacher = _db.Get<TeacherDB>((long)dayLesson.TeacherId);
-                               // _db.FillITimetablesModel(Teacher);
-                                dayLesson.ClassName = Class.Name;
-                                dayLesson.TeacherName = Teacher.Name;
                                 dayLesson.ClassroomName = classroomLs.Name;
+                               // _db.FillITimetablesModel(Teacher);
+                                dayLesson.ClassName = _db.GetNameById<ClassDB>((long)dayLesson.ClassId);
+                                dayLesson.TeacherName = _db.GetNameById<TeacherDB>((long)dayLesson.TeacherId);
                             }
                         }
                     }

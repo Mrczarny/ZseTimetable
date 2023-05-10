@@ -536,6 +536,11 @@ namespace TimetableLib.DataAccess
                 //}
                 return null;
             }
+
+            public override long? GetLessonId<T>(long recordId, byte lessonNumber, DayOfWeek day, string group)
+            {
+                throw new NotImplementedException();
+            }
         }
         private static bool IsDbProperty(PropertyInfo prop)
         {

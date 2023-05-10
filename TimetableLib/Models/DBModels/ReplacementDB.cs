@@ -19,7 +19,7 @@ namespace TimetableLib.Models.DBModels
             Group = lr.Group;
             LessonNumber = lr.LessonNumber;
             Note = lr.Note;
-            Date = lr.DayOfReplacement;
+            Date = (DateTime)lr.DayOfReplacement;
             OgTeacherName = lr.OriginalTeacher;
 
 

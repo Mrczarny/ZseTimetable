@@ -40,7 +40,7 @@ namespace ZseTimetable
             await DisposeAsyncCore();
         }
 
-        private IEnumerable<LessonReplacement> ScrapClassReplacements(string rawClassReplacements, string TeacherName)
+        private IEnumerable<LessonReplacement> ScrapClassReplacements(string rawClassReplacements, string TeacherName, string rawDate = "")
         {
             var replacementsMatches = _dic[nameof(ScrapClassReplacements)].Matches(rawClassReplacements);
             //new Regex(
@@ -63,7 +63,14 @@ namespace ZseTimetable
                     Note = replacementsMatch.Groups["note"].Value == "&nbsp;"
                         ? null
                         : replacementsMatch.Groups["note"].Value,
-                    OriginalTeacher = TeacherName
+                    OriginalTeacher = TeacherName,
+                    DayOfReplacement = rawDate != String.Empty ? 
+                        DateTime.TryParse(rawDate,
+                            CultureInfo.GetCultureInfo("pl"),
+                            DateTimeStyles.None, 
+                            out var date)
+                            ? date.Date
+                            : (DateTime?)null : null,
                 };
         }
 
@@ -73,8 +80,25 @@ namespace ZseTimetable
             //new Regex(
             //    @"<tr>[^<]*?<td[^<]*?(?<TeacherName>\w+( \w+)+)[^<]*?</td>[^<]*?</tr>(?<rawClassReplacements>.*?)",
             //    RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.RightToLeft | RegexOptions.ExplicitCapture)
+
             var tReplacementMatches = tReplacementsRegex.Matches(rawTeacherReplacements);
             foreach (Match replacementMatch in tReplacementMatches)
+            {
+                var date = _dic["DateCaputure"].Match(replacementMatch.Groups["teacherName"].Value);
+                if (date.Success)
+                {
+                    yield return new TeacherReplacements
+                    {
+                        Teacher = new Teacher
+                        {
+                            Name = replacementMatch.Groups["teacherName"].Value
+                        },
+                        ClassReplacements = ScrapClassReplacements(replacementMatch.Groups["rawClassReplacements"].Value,
+                            replacementMatch.Groups["teacherName"].Value, date.Value)
+                    };
+                    continue;
+                }
+
                 yield return new TeacherReplacements
                 {
                     Teacher = new Teacher
@@ -84,6 +108,7 @@ namespace ZseTimetable
                     ClassReplacements = ScrapClassReplacements(replacementMatch.Groups["rawClassReplacements"].Value,
                         replacementMatch.Groups["teacherName"].Value)
                 };
+        }
         }
 
         public DayReplacements Scrap(string rawHtml)

@@ -175,7 +175,7 @@ namespace ZseTimetable.Services
             foreach (var tReplacement in spChanges.Replacements)
             foreach (var lReplacement in tReplacement.ClassReplacements)
             {
-                lReplacement.DayOfReplacement = spChanges.Date.Value;
+                lReplacement.DayOfReplacement ??= spChanges.Date.Value;
                 yield return lReplacement;
             }
 

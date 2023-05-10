@@ -77,6 +77,7 @@ namespace ZseTimetable.Services
 
         private async Task DatabaseUpload(IAsyncEnumerable<ReplacementDB> DbModels)
         {
+
             await foreach (var dbModel in DbModels)
             {
                 var records = _db.GetByDate<ReplacementDB>(dbModel.Date);
@@ -146,7 +147,7 @@ namespace ZseTimetable.Services
             if (rp.TeacherId != null)
                 rp.LessonId = _db.GetLessonId<TeacherDB>((long) rp.TeacherId, rp.LessonNumber, rp.Date.DayOfWeek);
             if (rp.LessonId == null && rp.ClassId != null)
-                rp.LessonId = _db.GetLessonId<ClassDB>((long)rp.ClassId, rp.LessonNumber, rp.Date.DayOfWeek);
+                rp.LessonId = _db.GetLessonId<ClassDB>((long)rp.ClassId, rp.LessonNumber, rp.Date.DayOfWeek, rp.Group);
             //if (rp.LessonId == null && rp.ClassroomId != null)
             //    rp.LessonId = _db.GetLessonId<TeacherDB>((long)rp.ClassroomId, rp.LessonNumber, rp.Date.DayOfWeek);
 

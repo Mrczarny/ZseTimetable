@@ -53,6 +53,8 @@
 
 ZseTimetable is web api to fetch my school's timetable and convert it into standarized json format.
 
+api is available for public use under the address https://zsetimetable.live/api
+
 ### Built With
 
 * .NET Core version 3.1 

@@ -287,10 +287,10 @@ namespace ZseTimetable.Services
                     var matchingLesson = FindMatchingLesson(matchingClass.Timetable.Days, lesson, dayNumber);
                     if (matchingLesson != null)
                     {
-                        matchingLesson.ClassId ??= lesson.ClassId;
-                        matchingLesson.ClassroomId ??= lesson.ClassroomId;
-                        matchingLesson.TeacherId ??= lesson.TeacherId;
-                        matchingLesson.Group ??= lesson.Group;
+                        matchingLesson.ClassId = lesson.ClassId ?? matchingLesson.ClassId;
+                        matchingLesson.ClassroomId = lesson.ClassroomId ?? matchingLesson.ClassroomId;
+                        matchingLesson.TeacherId = lesson.TeacherId ?? matchingLesson.TeacherId;
+                        matchingLesson.Group = lesson.Group ?? matchingLesson.Group;
                         return matchingLesson;
                     }
                 }

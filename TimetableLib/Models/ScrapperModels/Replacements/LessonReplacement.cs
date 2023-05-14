@@ -7,7 +7,7 @@ namespace TimetableLib.Changes
     public class LessonReplacement : IPersist
     {
         public string OriginalTeacher { get; set; }
-        public DateTime DayOfReplacement { get; set; }
+        public DateTime? DayOfReplacement { get; set; }
         public byte LessonNumber { get; set; }
         public string ClassName { get; set; }
         public string ClassroomName { get; set; }

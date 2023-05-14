@@ -538,6 +538,40 @@ namespace TimetableLib.DataAccess
                     }
                 }
             }
+
+            public override long? GetLessonId<T>(long recordId, byte lessonNumber, DayOfWeek day, string group)
+            {
+                var command = new SqlCommand($"dbo.spLesson_GetByClassId")
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                command.Parameters.Add(new SqlParameter($"@{typeof(T).Name[..^2]}Id", recordId));
+                command.Parameters.Add(new SqlParameter("@LessonNumber", lessonNumber));
+                command.Parameters.Add(new SqlParameter("@Day", (int)day - 1));
+                command.Parameters.Add(new SqlParameter("@Group", group));
+
+                var properties = typeof(LessonDB).GetProperties().Where(x =>
+                    x.CustomAttributes.Any(x => x.AttributeType == typeof(SqlTypeAttribute)));
+
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    command.Connection = connection;
+                    connection.Open();
+                    var sqlData = command.ExecuteReader(CommandBehavior.SingleRow);
+                    long? id = null;
+                    if (sqlData.HasRows)
+                    {
+                        while (sqlData.Read()) id = (long)sqlData[0];
+
+                        return id;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
         }
 
         private static bool IsDbProperty(PropertyInfo property)

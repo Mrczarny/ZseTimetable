@@ -55,6 +55,56 @@ ZseTimetable is web api to fetch my school's timetable and convert it into stand
 
 api is available for public use under the address https://zsetimetable.live/api
 
+
+## API Reference
+
+#### Get timetable
+
+```
+  GET /api/timetable/${type}/${name}
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `type` | `string` | **Required**. Type of timetable (class, classroom or teacher) |
+| `name` | `string` | **Required**. name of timetable |
+
+#### Get names of all timetables of given type
+
+```
+  GET /api/timetable/${type}/allnames
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `type` | `string` | **Required**. Type of timetable (class, classroom or teacher) |
+
+#### Get changes for given day
+
+```
+  GET /api/changes/${date}
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `date` | `datetime` | **Required**. Date of the day you want to get changes for |
+
+#### Get all changes for current week
+
+```
+  GET /api/changes/week
+```
+
+#### Get all changes for today
+
+```
+  GET /api/changes/today
+```
+
+
+
+
+
 ### Built With
 
 * .NET Core version 3.1 

@@ -55,6 +55,8 @@ ZseTimetable is web api to fetch my school's timetable and convert it into stand
 
 api is available for public use under the address https://zsetimetable.live/api
 
+See also frontend implemetation: https://github.com/Mrczarny/zseTimetableFront
+
 
 ## API Reference
 
